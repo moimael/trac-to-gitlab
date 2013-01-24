@@ -52,7 +52,11 @@ for row in result:
   fp = file('%s.md' % name, 'w')
   print >>fp, '<!-- Name: %s -->' % name
   print >>fp, '<!-- Version: %d -->' % version
-  print >>fp, '<!-- Last-Modified: %s -->' % datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
+  try:
+    print >>fp, '<!-- Last-Modified: %s -->' % datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
+  except ValueError:
+    print >>fp, '<!-- Last-Modified: %s -->' % datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
+    
   print >>fp, '<!-- Author: %s -->' % author
   fp.write(text.encode('utf-8'))
   fp.close()
