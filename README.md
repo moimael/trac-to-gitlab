@@ -19,7 +19,7 @@ How
 Source
 -------
 
- * ```trac_url``` - xmlrpc url to trac, e.g. ``https://user:secret@www.example.com/projects/taskninja/login/xmlrpc```
+ * ```trac_url``` - xmlrpc url to trac, e.g. ``https://user:secret@www.example.com/projects/thisismyproject/login/xmlrpc```
 
 Target
 -------
