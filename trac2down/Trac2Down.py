@@ -23,6 +23,7 @@ def convert(text):
     text = re.sub(r'^ \d+. ', r'1.', text)
 
     a = []
+    is_table = False
     for line in text.split('\n'):
         if not line.startswith('        '):
             line = re.sub(r'\[(https?://[^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](\1)', line)
@@ -30,6 +31,16 @@ def convert(text):
             line = re.sub(r'\!(([A-Z][a-z0-9]+){2,})', r'\1', line)
             line = re.sub(r'\'\'\'(.*?)\'\'\'', r'*\1*', line)
             line = re.sub(r'\'\'(.*?)\'\'', r'_\1_', line)
+            if line.startswith('||'):
+                if not is_table:
+                    sep = re.sub(r'[^|]', r'-', line)
+                    line = line + '\n' + sep
+                    is_table = True
+                line = re.sub(r'\|\|', r'|', line)
+            else:
+                is_table = False
+        else:
+            is_table = False
         a.append(line)
     text = '\n'.join(a)
     return text
