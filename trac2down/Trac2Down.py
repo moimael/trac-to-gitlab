@@ -4,11 +4,12 @@
 import sqlite3
 import datetime
 import re
+import os
 
 def indent4(m):
     return '\n        ' + m.group(1).replace('\n', '\n        ')
 
-def convert(text):
+def convert(text, base_path):
     text = re.sub('\r\n', '\n', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
     text = re.sub(r'(?sm){{{\n(.*?)\n}}}', indent4, text)
@@ -25,9 +26,9 @@ def convert(text):
     a = []
     is_table = False
     for line in text.split('\n'):
-        if not line.startswith('        '):
+        if not line.startswith('    '):
             line = re.sub(r'\[(https?://[^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](\1)', line)
-            line = re.sub(r'\[(wiki:[^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](/\1/)', line)
+            line = re.sub(r'\[wiki:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/wikis', base_path), line)
             line = re.sub(r'\!(([A-Z][a-z0-9]+){2,})', r'\1', line)
             line = re.sub(r'\'\'\'(.*?)\'\'\'', r'*\1*', line)
             line = re.sub(r'\'\'(.*?)\'\'', r'_\1_', line)
@@ -72,7 +73,7 @@ if __name__ == "__main__":
         time = row[2]
         author = row[3]
         text = row[4]
-        text = convert(text)
+        text = convert(text, '/wikis/')
         time=''
         try:
             time= datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')

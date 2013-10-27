@@ -110,7 +110,7 @@ def convert_issues(source, dest, dest_project_id):
         is_closed =  src_ticket_data['status'] == "closed"
         new_ticket_data = {
             "title" : src_ticket_data['summary'],
-            "description" : trac2down.convert(fix_wiki_syntax( src_ticket_data['description'])),
+            "description" : trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/'),
             "closed" : 1 if is_closed else 0,
             "labels" : ",".join( [src_ticket_data['type'], src_ticket_data['component']] )
         }
@@ -131,7 +131,7 @@ def convert_issues(source, dest, dest_project_id):
         for change in changelog:
             change_type = change[2]
             if (change_type == "comment"):
-                comment = trac2down.convert(fix_wiki_syntax( change[4]))
+                comment = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/')
                 dest.comment_issue(dest_project_id,new_ticket_id,comment)
 
 def convert_wiki(source, dest, dest_project_id):
@@ -145,7 +145,7 @@ def convert_wiki(source, dest, dest_project_id):
             print "Page %s:%s|%s" % (name, info, page)
             if (name == 'WikiStart'):
                 name = 'home'
-            trac2down.save_file(trac2down.convert(page), name, info['version'], info['lastModified'], info['author'], target_directory)
+            trac2down.save_file(trac2down.convert(page, '/wikis/'), name, info['version'], info['lastModified'], info['author'], target_directory)
         
 
 #if __name__ == "__main__":
