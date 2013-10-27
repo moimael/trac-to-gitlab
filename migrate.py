@@ -5,6 +5,7 @@ import ConfigParser
 from re import MULTILINE
 import xmlrpclib
 import gitlab
+import trac2down
 """
 What
 =====
@@ -71,10 +72,6 @@ milestone_map = {"1.0":"1.0", "2.0":"2.0" }
 def fix_wiki_syntax(markup):
     markup = re.sub(r'#!CommitTicketReference.*\n',"",markup, flags=MULTILINE)
 
-    markup = markup.replace("{{{\n","\n```text\n")
-    markup = markup.replace("{{{","```")
-    markup = markup.replace("}}}","```")
-
     # [changeset:"afsd38..2fs/taskninja"] or [changeset:"afsd38..2fs"]
     markup = re.sub(r'\[changeset:"([^"/]+?)(?:/[^"]+)?"]',r"changeset \1",markup)
 
@@ -120,7 +117,7 @@ if __name__ == "__main__":
         is_closed =  src_ticket_data['status'] == "closed"
         new_ticket_data = {
             "title" : src_ticket_data['summary'],
-            "description" : fix_wiki_syntax( src_ticket_data['description']),
+            "description" : trac2down.convert(fix_wiki_syntax( src_ticket_data['description'])),
             "closed" : 1 if is_closed else 0,
             "labels" : ",".join( [src_ticket_data['type'], src_ticket_data['component']] )
         }
@@ -128,9 +125,7 @@ if __name__ == "__main__":
         milestone = src_ticket_data['milestone']
         if milestone and milestone_map_id[milestone]:
             new_ticket_data["milestone"] = milestone_map_id[milestone]
-        print new_ticket_data
         new_ticket = dest.create_issue(dest_project_id, new_ticket_data)
-        print new_ticket
         new_ticket_id  = new_ticket["id"]
         # setting closed in create does not work -- bug in gitlab
         if is_closed: dest.close_issue(dest_project_id,new_ticket_id)
@@ -143,7 +138,7 @@ if __name__ == "__main__":
         for change in changelog:
             change_type = change[2]
             if (change_type == "comment"):
-                comment = fix_wiki_syntax( change[4])
+                comment = trac2down.convert(fix_wiki_syntax( change[4]))
                 dest.comment_issue(dest_project_id,new_ticket_id,comment)
 
 

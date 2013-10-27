@@ -62,9 +62,7 @@ class Connection(object):
 
     def post_json(self, url_postfix, data, **keywords):
         completed_url = self._complete_url(url_postfix, keywords)
-        print "completed_url: %s" % completed_url
         payload = json.dumps(data)
-        print "payload: %s" % payload
         r = requests.post(completed_url, data=data, verify=self.verify)
         j = r.json()
         return j
