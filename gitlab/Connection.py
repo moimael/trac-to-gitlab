@@ -1,3 +1,5 @@
+# vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
+
 import json
 import requests
 
@@ -9,7 +11,7 @@ class Connection(object):
     Connection to the gitlab API
     """
 
-    def __init__(self, url, access_token):
+    def __init__(self, url, access_token, ssl_verify):
         """
 
         :param url: "https://www.neuhalfen.name/gitlab/api/v3"
@@ -17,6 +19,7 @@ class Connection(object):
         """
         self.url = url
         self.access_token = access_token
+        self.verify = ssl_verify
 
     def milestone_by_name(self, project_id, milestone_name):
         milestones = self.get("/projects/:project_id/milestones",project_id=project_id)
@@ -40,27 +43,29 @@ class Connection(object):
         :return: json of GET
         """
         completed_url = self._complete_url(url_postfix, keywords)
-        r = requests.get(completed_url)
+        r = requests.get(completed_url, verify=self.verify)
         json = r.json()
         return json
 
     def put(self, url_postfix, data, **keywords):
         completed_url = self._complete_url(url_postfix, keywords)
-        r = requests.put(completed_url,data= data)
+        r = requests.put(completed_url,data= data, verify=self.verify)
         j = r.json()
         return j
 
     def put_json(self, url_postfix, data, **keywords):
         completed_url = self._complete_url(url_postfix, keywords)
         payload = json.dumps(data)
-        r = requests.put(completed_url, payload)
+        r = requests.put(completed_url, data= payload, verify=self.verify)
         j = r.json()
         return j
 
     def post_json(self, url_postfix, data, **keywords):
         completed_url = self._complete_url(url_postfix, keywords)
+        print "completed_url: %s" % completed_url
         payload = json.dumps(data)
-        r = requests.post(completed_url, payload)
+        print "payload: %s" % payload
+        r = requests.post(completed_url, data=data, verify=self.verify)
         j = r.json()
         return j
 

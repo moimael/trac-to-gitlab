@@ -1,4 +1,7 @@
+#!/usr/bin/python
+# vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 import re
+import ConfigParser
 from re import MULTILINE
 import xmlrpclib
 import gitlab
@@ -44,15 +47,23 @@ Requirements
  * Gitlab
 
 """
-trac_url = "https://user:secret@www.example.com/projects/taskninja/login/xmlrpc"
 
-gitlab_url = "https://www.exmple.com/gitlab/api/v3"
-gitlab_access_token = "secretsecretsecret"
+default_config = {
+    'ssl_verify': 'no'
+}
+
+config = ConfigParser.ConfigParser(default_config)
+config.read('migrate.cfg')
 
 
+trac_url = config.get('source', 'url')
 
-dest_project_name ="jens.neuhalfen/task-ninja"
-milestone_map = {"M1 - build and tests":"M1 - build and tests" }
+gitlab_url = config.get('target', 'url')
+gitlab_access_token = config.get('target', 'access_token')
+dest_project_name = config.get('target', 'project_name')
+dest_ssl_verify = config.getboolean('target', 'ssl_verify')
+
+milestone_map = {"1.0":"1.0", "2.0":"2.0" }
 "------"
 
 
@@ -86,7 +97,7 @@ def get_dest_milestone_id(dest_project_id,milestone_name):
 #    print(v, fix_wiki_syntax(v))
 
 if __name__ == "__main__":
-    dest = gitlab.Connection(gitlab_url,gitlab_access_token)
+    dest = gitlab.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     source = xmlrpclib.ServerProxy(trac_url)
 
     dest_project_id = get_dest_project_id(dest_project_name)
@@ -117,8 +128,9 @@ if __name__ == "__main__":
         milestone = src_ticket_data['milestone']
         if milestone and milestone_map_id[milestone]:
             new_ticket_data["milestone"] = milestone_map_id[milestone]
-
+        print new_ticket_data
         new_ticket = dest.create_issue(dest_project_id, new_ticket_data)
+        print new_ticket
         new_ticket_id  = new_ticket["id"]
         # setting closed in create does not work -- bug in gitlab
         if is_closed: dest.close_issue(dest_project_id,new_ticket_id)
