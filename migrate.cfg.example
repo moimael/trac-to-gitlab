@@ -6,5 +6,10 @@ url: https://gitlab.example.com/api/v3 # URL of the GitLab web API
 access_token: secretsecret             # API access token
 project_name: foo/bar                  # project's path
 # ssl_verify: yes                      # Uncomment to verify SSL keys (default = no )
+[wiki]
+# migrate: yes                         # Should we migrate the wiki (default = yes)
+# exclude_authors: trac                # Comma separated list of authors to exclude (default=trac)
+[issues]
+#migrate: yes                          # Should we migrate the issues (default = yes)
 
 
