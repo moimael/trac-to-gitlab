@@ -14,7 +14,7 @@ What
  * Component & Issue-Type are converted to labels
  * Milestones are ignored (or: I did not get the script to set my one single milestone, so I set it manually)
  * Comments to issues are copied over
- * Wiki Syntax in comments/descriptions is sanitized for my basic usage
+ * Wiki Syntax in comments/descriptions is converted with trac2down
 
 
 How
@@ -50,7 +50,9 @@ Requirements
 """
 
 default_config = {
-    'ssl_verify': 'no'
+    'ssl_verify': 'no',
+    'migrate' : 'yes',
+    'exclude_authors' : 'trac'
 }
 
 config = ConfigParser.ConfigParser(default_config)
@@ -63,6 +65,10 @@ gitlab_url = config.get('target', 'url')
 gitlab_access_token = config.get('target', 'access_token')
 dest_project_name = config.get('target', 'project_name')
 dest_ssl_verify = config.getboolean('target', 'ssl_verify')
+
+must_convert_issues = config.getboolean('issues', 'migrate')
+must_convert_wiki = config.getboolean('wiki', 'migrate')
+
 
 milestone_map = {"1.0":"1.0", "2.0":"2.0" }
 "------"
@@ -87,28 +93,15 @@ def get_dest_milestone_id(dest_project_id,milestone_name):
     if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found under '%s'" % (milestone_name,dest_project_name, gitlab_url))
     return dest_milestone_id["id"]
 
-
-
-#if __name__ == "__main__":
-#   for v  in ['[changeset:"7609b4a46141a61d8f1e4a3e9c9d4f013e0388f8"]:','[changeset:"7609b4a46141a61d8f1e4a3e9c9d4f013e0388f8/taskninja"]:']:
-#    print(v, fix_wiki_syntax(v))
-
-if __name__ == "__main__":
-    dest = gitlab.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
-    source = xmlrpclib.ServerProxy(trac_url)
-
-    dest_project_id = get_dest_project_id(dest_project_name)
+def convert_issues(source, dest, dest_project_id):
     milestone_map_id={}
     for mstracname, msgitlabname in milestone_map.iteritems():
         milestone_map_id[mstracname]=get_dest_milestone_id(dest_project_id, msgitlabname)
-
-
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
     for ticket in source.ticket.query("max=0"):
         get_all_tickets.ticket.get(ticket)
-
 
     for src_ticket in get_all_tickets():
         src_ticket_id = src_ticket[0]
@@ -140,6 +133,32 @@ if __name__ == "__main__":
             if (change_type == "comment"):
                 comment = trac2down.convert(fix_wiki_syntax( change[4]))
                 dest.comment_issue(dest_project_id,new_ticket_id,comment)
+
+def convert_wiki(source, dest, dest_project_id):
+    exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
+    server = xmlrpclib.MultiCall(source)
+    for name in source.wiki.getAllPages():
+        info = source.wiki.getPageInfo(name)
+        if (info['author'] not in exclude_authors):
+            page = source.wiki.getPage(name)
+            print "Page %s:%s|%s" % (name, info, page)
+            trac2down.save_file(trac2down.convert(page), name, info['version'], info['lastModified'], info['author'])
+        
+
+#if __name__ == "__main__":
+#   for v  in ['[changeset:"7609b4a46141a61d8f1e4a3e9c9d4f013e0388f8"]:','[changeset:"7609b4a46141a61d8f1e4a3e9c9d4f013e0388f8/taskninja"]:']:
+#    print(v, fix_wiki_syntax(v))
+
+if __name__ == "__main__":
+    dest = gitlab.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
+    source = xmlrpclib.ServerProxy(trac_url)
+    dest_project_id = get_dest_project_id(dest_project_name)
+
+    if must_convert_issues:
+        convert_issues(source, dest, dest_project_id)
+
+    if must_convert_wiki:
+        convert_wiki(source, dest, dest_project_id)
 
 
 
