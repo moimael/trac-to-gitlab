@@ -45,8 +45,8 @@ def convert(text):
     text = '\n'.join(a)
     return text
 
-def save_file(text, name, version, date, author):
-    fp = file('%s.md' % name, 'w')
+def save_file(text, name, version, date, author, directory):
+    fp = file('%s%s.markdown' % (directory, name), 'w')
     print >>fp, '<!-- Name: %s -->' % name
     print >>fp, '<!-- Version: %d -->' % version
     print >>fp, '<!-- Last-Modified: %s -->' % date
@@ -78,6 +78,6 @@ if __name__ == "__main__":
             time= datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
             time= datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
-        save_file(text, name, version, time, author)
+        save_file(text, name, version, time, author, '')
 
 

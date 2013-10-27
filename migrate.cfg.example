@@ -9,6 +9,7 @@ project_name: foo/bar                  # project's path
 [wiki]
 # migrate: yes                         # Should we migrate the wiki (default = yes)
 # exclude_authors: trac                # Comma separated list of authors to exclude (default=trac)
+target_directory: /tmp/test.wiki/      # Directory where the wiki pages should be written
 [issues]
 #migrate: yes                          # Should we migrate the issues (default = yes)
 

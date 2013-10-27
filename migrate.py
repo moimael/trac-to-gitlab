@@ -136,13 +136,16 @@ def convert_issues(source, dest, dest_project_id):
 
 def convert_wiki(source, dest, dest_project_id):
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
+    target_directory = config.get('wiki', 'target_directory')
     server = xmlrpclib.MultiCall(source)
     for name in source.wiki.getAllPages():
         info = source.wiki.getPageInfo(name)
         if (info['author'] not in exclude_authors):
             page = source.wiki.getPage(name)
             print "Page %s:%s|%s" % (name, info, page)
-            trac2down.save_file(trac2down.convert(page), name, info['version'], info['lastModified'], info['author'])
+            if (name == 'WikiStart'):
+                name = 'home'
+            trac2down.save_file(trac2down.convert(page), name, info['version'], info['lastModified'], info['author'], target_directory)
         
 
 #if __name__ == "__main__":
