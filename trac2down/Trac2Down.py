@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 
 import sqlite3
@@ -49,12 +49,12 @@ def convert(text, base_path):
     return text
 
 def save_file(text, name, version, date, author, directory):
-    fp = file('%s%s.markdown' % (directory, name), 'w')
-    print >>fp, '<!-- Name: %s -->' % name
-    print >>fp, '<!-- Version: %d -->' % version
-    print >>fp, '<!-- Last-Modified: %s -->' % date
-    print >>fp, '<!-- Author: %s -->' % author
-    fp.write(text.encode('utf-8'))
+    fp = open('%s%s.markdown' % (directory, name), 'w')
+    print('<!-- Name: %s -->' % name, file=fp)
+    print('<!-- Version: %d -->' % version, file=fp)
+    print('<!-- Last-Modified: %s -->' % date, file=fp)
+    print('<!-- Author: %s -->' % author, file=fp)
+    fp.write(text)
     fp.close()
 
 if __name__ == "__main__":

@@ -102,7 +102,7 @@ class Connection(object):
         """
 
         result = url_postfix
-        for key, value in keywords.iteritems():
+        for key, value in keywords.items():
             k = ":" + str(key)
             v = str(value)
             result = result.replace(k, v)

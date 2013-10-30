@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 import re
-import ConfigParser
+import configparser
 from re import MULTILINE
-import xmlrpclib
+import xmlrpc.client
 import gitlab
 import trac2down
 """
@@ -55,7 +55,7 @@ default_config = {
     'exclude_authors' : 'trac'
 }
 
-config = ConfigParser.ConfigParser(default_config)
+config = configparser.ConfigParser(default_config)
 config.read('migrate.cfg')
 
 
@@ -95,10 +95,10 @@ def get_dest_milestone_id(dest_project_id,milestone_name):
 
 def convert_issues(source, dest, dest_project_id):
     milestone_map_id={}
-    for mstracname, msgitlabname in milestone_map.iteritems():
+    for mstracname, msgitlabname in milestone_map.items():
         milestone_map_id[mstracname]=get_dest_milestone_id(dest_project_id, msgitlabname)
 
-    get_all_tickets = xmlrpclib.MultiCall(source)
+    get_all_tickets = xmlrpc.client.MultiCall(source)
 
     for ticket in source.ticket.query("max=0"):
         get_all_tickets.ticket.get(ticket)
@@ -124,11 +124,12 @@ def convert_issues(source, dest, dest_project_id):
         if is_closed: dest.close_issue(dest_project_id,new_ticket_id)
 
         # same for milestone
-        if new_ticket_data.has_key("milestone"): dest.set_issue_milestone(dest_project_id,new_ticket_id,new_ticket_data["milestone"])
+        if "milestone" in new_ticket_data: dest.set_issue_milestone(dest_project_id,new_ticket_id,new_ticket_data["milestone"])
 
 
         changelog = source.ticket.changeLog(src_ticket_id)
         for change in changelog:
+            print(change)
             change_type = change[2]
             if (change_type == "comment"):
                 comment = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/')
@@ -137,12 +138,12 @@ def convert_issues(source, dest, dest_project_id):
 def convert_wiki(source, dest, dest_project_id):
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
     target_directory = config.get('wiki', 'target_directory')
-    server = xmlrpclib.MultiCall(source)
+    server = xmlrpc.client.MultiCall(source)
     for name in source.wiki.getAllPages():
         info = source.wiki.getPageInfo(name)
         if (info['author'] not in exclude_authors):
             page = source.wiki.getPage(name)
-            print "Page %s:%s|%s" % (name, info, page)
+            # print "Page %s:%s|%s" % (name, info, page)
             if (name == 'WikiStart'):
                 name = 'home'
             trac2down.save_file(trac2down.convert(page, '/wikis/'), name, info['version'], info['lastModified'], info['author'], target_directory)
@@ -154,7 +155,7 @@ def convert_wiki(source, dest, dest_project_id):
 
 if __name__ == "__main__":
     dest = gitlab.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
-    source = xmlrpclib.ServerProxy(trac_url)
+    source = xmlrpc.client.ServerProxy(trac_url)
     dest_project_id = get_dest_project_id(dest_project_name)
 
     if must_convert_issues:

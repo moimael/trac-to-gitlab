@@ -45,3 +45,7 @@ Requirements
  * ```Python 2.7, xmlrpclib, requests```
  * Trac with [XML-RPC plugin](http://trac-hacks.org/wiki/XmlRpcPlugin) enabled
  * Gitlab
+ 
+ And also, if you use the direct access to GitLab's database:
+ * [peewee](https://github.com/coleifer/peewee) 
+ * [PyMySQl](https://github.com/PyMySQL/PyMySQL)

@@ -1,1 +1,1 @@
-from Trac2Down import *
+from .Trac2Down import *
