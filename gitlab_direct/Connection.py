@@ -65,6 +65,13 @@ class Connection(object):
         r = requests.post(completed_url, data=data, verify=self.verify)
         j = r.json()
         return j
+    
+    def get_user_id(self, username):
+        # TODO: define more clever matching strategies, test return code and use a default user...
+        return Users.get(Users.email == username).id
+
+    def get_issues_iid(self, dest_project_id):
+        return Issues.select().where(Issues.project == dest_project_id).aggregate(fn.Count(Issues.id)) + 1
 
     def create_issue(self, dest_project_id, new_issue):
         new_issue.save()

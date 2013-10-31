@@ -2,6 +2,7 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 import re
 import configparser
+from datetime import datetime
 from re import MULTILINE
 import xmlrpc.client
 import trac2down
@@ -59,6 +60,9 @@ must_convert_wiki = config.getboolean('wiki', 'migrate')
 milestone_map = {"1.0":"1.0", "2.0":"2.0" }
 "------"
 
+def convert_xmlrpc_datetime(dt):
+    return datetime.strptime(str(dt), "%Y%m%dT%H:%M:%S")
+
 def fix_wiki_syntax(markup):
     markup = re.sub(r'#!CommitTicketReference.*\n',"",markup, flags=MULTILINE)
 
@@ -94,12 +98,22 @@ def convert_issues(source, dest, dest_project_id):
         src_ticket_data = src_ticket[3]
 
         is_closed =  src_ticket_data['status'] == "closed"
-        new_issue = Issues(
+        # Minimal parameters
+        new_issue = Issues (
             title = src_ticket_data['summary'],
             description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/'),
             closed = 1 if is_closed else 0,
-            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component']] )
+            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] )
         )
+        # Additional parameters for direct access
+        if (method == 'direct'):
+            new_issue.created_at = convert_xmlrpc_datetime(src_ticket[1])
+            new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
+            new_issue.project = dest_project_id
+            new_issue.state = src_ticket_data['status']
+            new_issue.author = dest.get_user_id(src_ticket_data['reporter'])
+            new_issue.assignee = dest.get_user_id(src_ticket_data['owner'])
+            new_issue.iid = dest.get_issues_iid(dest_project_id)
 
         milestone = src_ticket_data['milestone']
         if milestone and milestone_map_id[milestone]:
