@@ -10,6 +10,7 @@ access_token: secretsecret             # API access token (if method = api)
 db-name: databasename                  # database name (if method = direct)
 db-user: gitlab                        # database user (if method = direct)
 db-password: secret                    # database password (if method = direct)
+usernames: trac1->git1, trac2->git2    # Comma separated list of username mappings (if method = direct)
 [wiki]
 # migrate: yes                         # Should we migrate the wiki (default = yes)
 # exclude_authors: trac                # Comma separated list of authors to exclude (default=trac)

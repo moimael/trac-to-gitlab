@@ -51,7 +51,7 @@ def create_users_map(usernames):
 
 
 if (method == 'api'):
-    from gitlab_api import Connection, Issues
+    from gitlab_api import Connection, Issues, Notes
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')

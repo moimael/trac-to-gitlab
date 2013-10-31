@@ -13,6 +13,9 @@ class Bunch:
 class Issues(Bunch):
     pass
 
+class Notes(Bunch):
+    pass
+
 class Connection(object):
     """
     Connection to the gitlab API
@@ -85,13 +88,13 @@ class Connection(object):
         b.__dict__ = new_ticket
         return b
 
-    def comment_issue(self,project_id,ticket_id, body):
+    def comment_issue(self ,project_id, ticket, note):
         new_note_data = {
             "id" : project_id,
-            "issue_id" :ticket_id,
-            "body" : body
+            "issue_id" :ticket.id,
+            "body" : note.note
         }
-        self.post_json( "/projects/:project_id/issues/:issue_id/notes", new_note_data, project_id=project_id, issue_id=ticket_id)
+        self.post_json( "/projects/:project_id/issues/:issue_id/notes", new_note_data, project_id=project_id, issue_id=ticket.id)
 
 
     def set_issue_milestone(self,project_id,ticket_id,milestone_id):
