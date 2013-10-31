@@ -75,6 +75,16 @@ class Connection(object):
 
     def create_issue(self, dest_project_id, new_issue):
         new_issue.save()
+        event = Events.create(
+            action = 1,
+            author = new_issue.author,
+            created_at = new_issue.created_at,
+            project = dest_project_id,
+            target = new_issue.iid,
+            target_type = 'issue',
+            updated_at = new_issue.created_at
+        )
+        event.save()
         return new_issue
 
     def comment_issue(self,project_id,ticket_id, body):
