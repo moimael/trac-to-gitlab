@@ -80,7 +80,7 @@ class Connection(object):
         if new_issue.closed == 1: self.close_issue(dest_project_id,new_ticket_id)
         # same for milestone
         if "milestone" in new_issue.__dict__: self.set_issue_milestone(dest_project_id,new_ticket_id,new_issue.milestone)
-        b = Bunch()
+        b = Issues()
         b.__dict__ = new_ticket
         return b
 
