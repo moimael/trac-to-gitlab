@@ -42,7 +42,7 @@ License
 Requirements
 ==============
 
- * ```Python 2.7, xmlrpclib, requests```
+ * ```Python 3.2, xmlrpclib, requests```
  * Trac with [XML-RPC plugin](http://trac-hacks.org/wiki/XmlRpcPlugin) enabled
  * Gitlab
  

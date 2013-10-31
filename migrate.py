@@ -4,36 +4,12 @@ import re
 import configparser
 from re import MULTILINE
 import xmlrpc.client
-import gitlab
 import trac2down
 """
 What
 =====
 
  This script migrates issues from trac to gitlab.
- * Component & Issue-Type are converted to labels
- * Milestones are ignored (or: I did not get the script to set my one single milestone, so I set it manually)
- * Comments to issues are copied over
- * Wiki Syntax in comments/descriptions is converted with trac2down
-
-
-How
-====
-
- Usage: configure the following variables in in ```migrate.py````
-
-Source
--------
-
- * ```trac_url``` - xmlrpc url to trac, e.g. ``https://user:secret@www.example.com/projects/taskninja/login/xmlrpc```
-
-Target
--------
-
- * ```gitlab_url``` - e.g. ```https://www.exmple.com/gitlab/api/v3```
- * ```gitlab_access_token``` - the access token of the user creating all the issues. Found on the account page,  e.g. ```secretsecretsecret```
- * ```dest_project_name``` - the destination project including the paths to it. Basically the rest of the clone url minus the ".git". E.g. ```jens.neuhalfen/task-ninja```.
- * ```milestone_map``` - Maps milestones from trac to gitlab. Milestones have to exist in gitlab prior to running the script (_CAVE_: Assigning milestones does not work.)
 
 License
 ========
@@ -60,11 +36,21 @@ config.read('migrate.cfg')
 
 
 trac_url = config.get('source', 'url')
-
-gitlab_url = config.get('target', 'url')
-gitlab_access_token = config.get('target', 'access_token')
 dest_project_name = config.get('target', 'project_name')
-dest_ssl_verify = config.getboolean('target', 'ssl_verify')
+
+method = config.get('target', 'method')
+
+if (method == 'api'):
+    import gitlab_api
+    gitlab_url = config.get('target', 'url')
+    gitlab_access_token = config.get('target', 'access_token')
+    dest_ssl_verify = config.getboolean('target', 'ssl_verify')
+elif (method == 'direct'):
+    import gitlab_direct
+    db_name = config.get('target', 'db-name')
+    db_password = config.get('target', 'db-password')
+    db_user = config.get('target', 'db-user')
+
 
 must_convert_issues = config.getboolean('issues', 'migrate')
 must_convert_wiki = config.getboolean('wiki', 'migrate')
@@ -72,8 +58,6 @@ must_convert_wiki = config.getboolean('wiki', 'migrate')
 
 milestone_map = {"1.0":"1.0", "2.0":"2.0" }
 "------"
-
-
 
 def fix_wiki_syntax(markup):
     markup = re.sub(r'#!CommitTicketReference.*\n',"",markup, flags=MULTILINE)
@@ -83,6 +67,7 @@ def fix_wiki_syntax(markup):
 
     return markup
 
+
 def get_dest_project_id(dest_project_name):
     dest_project = dest.project_by_name(dest_project_name)
     if not dest_project: raise ValueError("Project '%s' not found under '%s'" % (dest_project_name, gitlab_url))
@@ -90,7 +75,7 @@ def get_dest_project_id(dest_project_name):
 
 def get_dest_milestone_id(dest_project_id,milestone_name):
     dest_milestone_id = dest.milestone_by_name(dest_project_id,milestone_name )
-    if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found under '%s'" % (milestone_name,dest_project_name, gitlab_url))
+    if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name,dest_project_name))
     return dest_milestone_id["id"]
 
 def convert_issues(source, dest, dest_project_id):
@@ -104,6 +89,7 @@ def convert_issues(source, dest, dest_project_id):
         get_all_tickets.ticket.get(ticket)
 
     for src_ticket in get_all_tickets():
+        print (src_ticket)
         src_ticket_id = src_ticket[0]
         src_ticket_data = src_ticket[3]
 
@@ -149,12 +135,12 @@ def convert_wiki(source, dest, dest_project_id):
             trac2down.save_file(trac2down.convert(page, '/wikis/'), name, info['version'], info['lastModified'], info['author'], target_directory)
         
 
-#if __name__ == "__main__":
-#   for v  in ['[changeset:"7609b4a46141a61d8f1e4a3e9c9d4f013e0388f8"]:','[changeset:"7609b4a46141a61d8f1e4a3e9c9d4f013e0388f8/taskninja"]:']:
-#    print(v, fix_wiki_syntax(v))
-
 if __name__ == "__main__":
-    dest = gitlab.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
+    if method == 'api':
+        dest = gitlab_api.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
+    elif method == 'direct':
+        dest = gitlab_direct.Connection(db_name, db_user, db_password)
+    
     source = xmlrpc.client.ServerProxy(trac_url)
     dest_project_id = get_dest_project_id(dest_project_name)
 
