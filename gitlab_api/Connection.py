@@ -88,7 +88,7 @@ class Connection(object):
         b.__dict__ = new_ticket
         return b
 
-    def comment_issue(self ,project_id, ticket, note):
+    def comment_issue(self ,project_id, ticket, note, binary_attachment):
         new_note_data = {
             "id" : project_id,
             "issue_id" :ticket.id,

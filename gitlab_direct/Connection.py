@@ -2,6 +2,7 @@
 
 from peewee import MySQLDatabase
 from .model62 import *
+import os
 
 
 class Connection(object):
@@ -9,7 +10,7 @@ class Connection(object):
     Connection to the gitlab database
     """
 
-    def __init__(self, db_name, db_user, db_password):
+    def __init__(self, db_name, db_user, db_password, uploads_path):
         """
 
         :param url: "https://www.neuhalfen.name/gitlab/api/v3"
@@ -17,6 +18,7 @@ class Connection(object):
         """
         db = MySQLDatabase(db_name, **{'passwd': db_password, 'user': db_user})
         database_proxy.initialize(db)
+        self.uploads_path = uploads_path
 
 
     def milestone_by_name(self, project_id, milestone_name):
@@ -100,11 +102,20 @@ class Connection(object):
             tagging.save()
         return new_issue
 
-    def comment_issue(self ,project_id, ticket, note):
+    def comment_issue(self ,project_id, ticket, note, binary_attachment):
         note.project = project_id
         note.noteable = ticket.id
         note.noteable_type = 'Issue'
         note.save()
+        
+        if binary_attachment:
+            directory = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            path = os.path.join(directory, note.attachment)
+            file = open(path,"wb")
+            file.write(binary_attachment)
+            file.close()
         
         event = Events.create(
             action = 1,

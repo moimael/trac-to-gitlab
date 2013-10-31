@@ -29,7 +29,8 @@ Requirements
 default_config = {
     'ssl_verify': 'no',
     'migrate' : 'yes',
-    'exclude_authors' : 'trac'
+    'exclude_authors' : 'trac',
+    'uploads' : ''
 }
 
 config = configparser.ConfigParser(default_config)
@@ -38,6 +39,7 @@ config.read('migrate.cfg')
 
 trac_url = config.get('source', 'url')
 dest_project_name = config.get('target', 'project_name')
+uploads_path = config.get('target', 'uploads')
 
 method = config.get('target', 'method')
 
@@ -135,22 +137,32 @@ def convert_issues(source, dest, dest_project_id):
         new_ticket_id  = new_ticket.id
 
         changelog = source.ticket.changeLog(src_ticket_id)
+        is_attachment = False
         for change in changelog:
             print(change)
             change_type = change[2]
+            if change_type == "attachment":
+                # The attachment will be described in the next change!
+                is_attachment = True
+                attachment = change
             if (change_type == "comment") and change[4] != '':
                 note = Notes(
                     note = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/')
                 )
+                binary_attachment = None
                 if (method == 'direct'):
                     note.created_at = convert_xmlrpc_datetime(change[0])
                     note.updated_at = convert_xmlrpc_datetime(change[0])
                     note.author = dest.get_user_id(users_map[change[1]])
-                dest.comment_issue(dest_project_id, new_ticket, note)
+                    if (is_attachment):
+                        note.attachment = attachment[4]
+                        binary_attachment = source.ticket.getAttachment(src_ticket_id, attachment[4]).data
+                dest.comment_issue(dest_project_id, new_ticket, note, binary_attachment)
+                is_attachment = False
 
 def convert_wiki(source, dest, dest_project_id):
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
-    target_directory = config.get('wiki', 'target_directory')
+    target_directory = config.get('wiki', 'target-directory')
     server = xmlrpc.client.MultiCall(source)
     for name in source.wiki.getAllPages():
         info = source.wiki.getPageInfo(name)
@@ -166,7 +178,7 @@ if __name__ == "__main__":
     if method == 'api':
         dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     elif method == 'direct':
-        dest = Connection(db_name, db_user, db_password)
+        dest = Connection(db_name, db_user, db_password, uploads_path)
     
     source = xmlrpc.client.ServerProxy(trac_url)
     dest_project_id = get_dest_project_id(dest_project_name)
