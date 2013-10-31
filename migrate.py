@@ -41,16 +41,26 @@ dest_project_name = config.get('target', 'project_name')
 
 method = config.get('target', 'method')
 
+def create_users_map(usernames):
+    umap = {}
+    for user in usernames.split(','):
+        (trac, gitlab) = user.split('->')
+        umap[trac.strip()] = gitlab.strip()
+    print(umap)
+    return umap
+
+
 if (method == 'api'):
     from gitlab_api import Connection, Issues
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
 elif (method == 'direct'):
-    from gitlab_direct import Connection, Issues
+    from gitlab_direct import Connection, Issues, Notes
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
+    users_map = create_users_map(config.get('target', 'usernames'))
 
 
 must_convert_issues = config.getboolean('issues', 'migrate')
@@ -59,6 +69,7 @@ must_convert_wiki = config.getboolean('wiki', 'migrate')
 
 milestone_map = {"1.0":"1.0", "2.0":"2.0" }
 "------"
+
 
 def convert_xmlrpc_datetime(dt):
     return datetime.strptime(str(dt), "%Y%m%dT%H:%M:%S")
@@ -86,6 +97,8 @@ def convert_issues(source, dest, dest_project_id):
     milestone_map_id={}
     for mstracname, msgitlabname in milestone_map.items():
         milestone_map_id[mstracname]=get_dest_milestone_id(dest_project_id, msgitlabname)
+    
+    print(milestone_map_id)
 
     get_all_tickets = xmlrpc.client.MultiCall(source)
 
@@ -111,8 +124,8 @@ def convert_issues(source, dest, dest_project_id):
             new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
             new_issue.project = dest_project_id
             new_issue.state = src_ticket_data['status']
-            new_issue.author = dest.get_user_id(src_ticket_data['reporter'])
-            new_issue.assignee = dest.get_user_id(src_ticket_data['owner'])
+            new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
+            new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
             new_issue.iid = dest.get_issues_iid(dest_project_id)
 
         milestone = src_ticket_data['milestone']
@@ -125,9 +138,15 @@ def convert_issues(source, dest, dest_project_id):
         for change in changelog:
             print(change)
             change_type = change[2]
-            if (change_type == "comment"):
-                comment = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/')
-                dest.comment_issue(dest_project_id,new_ticket_id,comment)
+            if (change_type == "comment") and change[4] != '':
+                note = Notes(
+                    note = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/')
+                )
+                if (method == 'direct'):
+                    note.created_at = convert_xmlrpc_datetime(change[0])
+                    note.updated_at = convert_xmlrpc_datetime(change[0])
+                    note.author = dest.get_user_id(users_map[change[1]])
+                dest.comment_issue(dest_project_id, new_ticket, note)
 
 def convert_wiki(source, dest, dest_project_id):
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]

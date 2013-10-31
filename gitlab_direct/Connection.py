@@ -67,8 +67,7 @@ class Connection(object):
         return j
     
     def get_user_id(self, username):
-        # TODO: define more clever matching strategies, test return code and use a default user...
-        return Users.get(Users.email == username).id
+        return Users.get(Users.username == username).id
 
     def get_issues_iid(self, dest_project_id):
         return Issues.select().where(Issues.project == dest_project_id).aggregate(fn.Count(Issues.id)) + 1
@@ -101,13 +100,22 @@ class Connection(object):
             tagging.save()
         return new_issue
 
-    def comment_issue(self,project_id,ticket_id, body):
-        new_note_data = {
-            "id" : project_id,
-            "issue_id" :ticket_id,
-            "body" : body
-        }
-        self.post_json( "/projects/:project_id/issues/:issue_id/notes", new_note_data, project_id=project_id, issue_id=ticket_id)
+    def comment_issue(self ,project_id, ticket, note):
+        note.project = project_id
+        note.noteable = ticket.iid
+        note.noteable_type = 'Issue'
+        note.save()
+        
+        event = Events.create(
+            action = 1,
+            author = note.author,
+            created_at = note.created_at,
+            project = project_id,
+            target = note.id,
+            target_type = 'Note',
+            updated_at = note.created_at
+        )
+        event.save()
 
 
     def set_issue_milestone(self,project_id,ticket_id,milestone_id):
