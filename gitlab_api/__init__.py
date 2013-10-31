@@ -1,1 +1,1 @@
-from .Connection import Connection, Issues, Notes
+from .Connection import Connection, Issues, Notes, Milestones

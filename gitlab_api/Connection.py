@@ -10,10 +10,21 @@ class Bunch:
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
+    @staticmethod
+    def create(dictionary):
+        if not dictionary:
+            return None
+        bunch = Bunch()
+        bunch.__dict__ = dictionary
+        return bunch
+
 class Issues(Bunch):
     pass
 
 class Notes(Bunch):
+    pass
+
+class Milestones(Bunch):
     pass
 
 class Connection(object):
@@ -87,6 +98,16 @@ class Connection(object):
         b = Issues()
         b.__dict__ = new_ticket
         return b
+
+    def create_milestone(self, dest_project_id, new_milestone):
+        existing = Milestones.create(self.milestone_by_name(dest_project_id, new_milestone.title))
+        if existing:
+            new_milestone.id = existing.id
+            self.put_json("/projects/:id/milestones/:milestone_id", new_milestone.__dict__, id=dest_project_id, milestone_id=existing.id)
+            return new_milestone
+        else:
+            self.post_json("/projects/:id/milestones", new_milestone.__dict__, id=dest_project_id)
+            return Milestones.create(self.milestone_by_name(dest_project_id, new_milestone.title))
 
     def comment_issue(self ,project_id, ticket, note, binary_attachment):
         new_note_data = {
