@@ -86,8 +86,9 @@ class Connection(object):
         )
         event.save()
         for label in new_issue.labels.split(','):
-            tag = Tags.get(Tags.name == label)
-            if tag == None:
+            try:
+                tag = Tags.get(Tags.name == label)
+            except:
                 tag = Tags.create(name = label)
                 tag.save()
             tagging = Taggings.create(
