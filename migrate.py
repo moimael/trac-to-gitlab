@@ -20,7 +20,7 @@ License
 Requirements
 ==============
 
- * ```Python 2.7, xmlrpclib, requests```
+ * ```Python 3.2, xmlrpclib, requests```
  * Trac with xmlrpc plugin enabled
  * Gitlab
 
@@ -53,12 +53,12 @@ def create_users_map(usernames):
 
 
 if (method == 'api'):
-    from gitlab_api import Connection, Issues, Notes
+    from gitlab_api import Connection, Issues, Notes, Milestones
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
 elif (method == 'direct'):
-    from gitlab_direct import Connection, Issues, Notes
+    from gitlab_direct import Connection, Issues, Notes, Milestones
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
@@ -96,10 +96,22 @@ def get_dest_milestone_id(dest_project_id,milestone_name):
     return dest_milestone_id["id"]
 
 def convert_issues(source, dest, dest_project_id):
-    milestone_map_id={}
-    for mstracname, msgitlabname in milestone_map.items():
-        milestone_map_id[mstracname]=get_dest_milestone_id(dest_project_id, msgitlabname)
     
+    milestone_map_id={}
+    for milestone_name in source.ticket.milestone.getAll():
+        milestone = source.ticket.milestone.get(milestone_name)
+        new_milestone = Milestones(
+            description = milestone['description'],
+            title = milestone['name'],
+            state = 'active' if milestone['completed'] == 0 else 'completed'
+        )
+        if method == 'direct':
+            new_milestone.project = dest_project_id
+            if milestone['due']:
+                new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
+        new_milestone = dest.create_milestone(dest_project_id, new_milestone)
+        milestone_map_id[milestone_name] = new_milestone.id
+            
     print(milestone_map_id)
 
     get_all_tickets = xmlrpc.client.MultiCall(source)

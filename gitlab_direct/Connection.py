@@ -3,6 +3,7 @@
 from peewee import MySQLDatabase
 from .model62 import *
 import os
+from datetime import datetime
 
 
 class Connection(object):
@@ -73,6 +74,21 @@ class Connection(object):
 
     def get_issues_iid(self, dest_project_id):
         return Issues.select().where(Issues.project == dest_project_id).aggregate(fn.Count(Issues.id)) + 1
+    
+    def create_milestone(self, dest_project_id, new_milestone):
+        try:
+            existing = Milestones.get((Milestones.title == new_milestone.title) & (Milestones.project == dest_project_id))
+            for k in new_milestone._data:
+                if (k not in ('id', 'iid')):
+                    existing._data[k] = new_milestone._data[k]
+            new_milestone = existing
+        except:
+            new_milestone.iid = Milestones.select().where(Milestones.project == dest_project_id).aggregate(fn.Count(Milestones.id)) + 1
+            new_milestone.created_at = datetime.now()
+            new_milestone.updated_at = datetime.now()
+        new_milestone.save()
+        return new_milestone
+        
 
     def create_issue(self, dest_project_id, new_issue):
         new_issue.save()
