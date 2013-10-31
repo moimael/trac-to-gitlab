@@ -123,7 +123,7 @@ def convert_issues(source, dest, dest_project_id):
             new_issue.created_at = convert_xmlrpc_datetime(src_ticket[1])
             new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
             new_issue.project = dest_project_id
-            new_issue.state = src_ticket_data['status']
+            new_issue.state = 'closed' if is_closed else 'opened'
             new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
             new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
             new_issue.iid = dest.get_issues_iid(dest_project_id)

@@ -79,12 +79,12 @@ class Connection(object):
             author = new_issue.author,
             created_at = new_issue.created_at,
             project = dest_project_id,
-            target = new_issue.iid,
+            target = new_issue.id,
             target_type = 'Issue',
             updated_at = new_issue.created_at
         )
         event.save()
-        for label in new_issue.labels.split(','):
+        for label in set(new_issue.labels.split(',')):
             try:
                 tag = Tags.get(Tags.name == label)
             except:
@@ -102,7 +102,7 @@ class Connection(object):
 
     def comment_issue(self ,project_id, ticket, note):
         note.project = project_id
-        note.noteable = ticket.iid
+        note.noteable = ticket.id
         note.noteable_type = 'Issue'
         note.save()
         
