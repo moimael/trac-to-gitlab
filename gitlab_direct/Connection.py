@@ -81,10 +81,23 @@ class Connection(object):
             created_at = new_issue.created_at,
             project = dest_project_id,
             target = new_issue.iid,
-            target_type = 'issue',
+            target_type = 'Issue',
             updated_at = new_issue.created_at
         )
         event.save()
+        for label in new_issue.labels.split(','):
+            tag = Tags.get(Tags.name == label)
+            if tag == None:
+                tag = Tags.create(name = label)
+                tag.save()
+            tagging = Taggings.create(
+                tag = tag.id,
+                taggable = new_issue.id,
+                taggable_type = 'Issue',
+                context = 'labels',
+                created_at = new_issue.created_at
+            )
+            tagging.save()
         return new_issue
 
     def comment_issue(self,project_id,ticket_id, body):
