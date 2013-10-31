@@ -66,8 +66,9 @@ class Connection(object):
         j = r.json()
         return j
 
-    def create_issue(self, dest_project_id, new_ticket):
-        return self.post_json("/projects/:id/issues", new_ticket, id=dest_project_id)
+    def create_issue(self, dest_project_id, new_issue):
+        new_issue.save()
+        return new_issue
 
     def comment_issue(self,project_id,ticket_id, body):
         new_note_data = {

@@ -105,7 +105,7 @@ def convert_issues(source, dest, dest_project_id):
         if milestone and milestone_map_id[milestone]:
             new_issue.milestone = milestone_map_id[milestone]
         new_ticket = dest.create_issue(dest_project_id, new_issue)
-        new_ticket_id  = new_ticket["id"]
+        new_ticket_id  = new_ticket.id
 
         changelog = source.ticket.changeLog(src_ticket_id)
         for change in changelog:
