@@ -41,12 +41,12 @@ dest_project_name = config.get('target', 'project_name')
 method = config.get('target', 'method')
 
 if (method == 'api'):
-    import gitlab_api
+    from gitlab_api import Connection, Issues
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
 elif (method == 'direct'):
-    import gitlab_direct
+    from gitlab_direct import Connection, Issues
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
@@ -94,24 +94,18 @@ def convert_issues(source, dest, dest_project_id):
         src_ticket_data = src_ticket[3]
 
         is_closed =  src_ticket_data['status'] == "closed"
-        new_ticket_data = {
-            "title" : src_ticket_data['summary'],
-            "description" : trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/'),
-            "closed" : 1 if is_closed else 0,
-            "labels" : ",".join( [src_ticket_data['type'], src_ticket_data['component']] )
-        }
+        new_issue = Issues(
+            title = src_ticket_data['summary'],
+            description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/'),
+            closed = 1 if is_closed else 0,
+            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component']] )
+        )
 
         milestone = src_ticket_data['milestone']
         if milestone and milestone_map_id[milestone]:
-            new_ticket_data["milestone"] = milestone_map_id[milestone]
-        new_ticket = dest.create_issue(dest_project_id, new_ticket_data)
+            new_issue.milestone = milestone_map_id[milestone]
+        new_ticket = dest.create_issue(dest_project_id, new_issue)
         new_ticket_id  = new_ticket["id"]
-        # setting closed in create does not work -- bug in gitlab
-        if is_closed: dest.close_issue(dest_project_id,new_ticket_id)
-
-        # same for milestone
-        if "milestone" in new_ticket_data: dest.set_issue_milestone(dest_project_id,new_ticket_id,new_ticket_data["milestone"])
-
 
         changelog = source.ticket.changeLog(src_ticket_id)
         for change in changelog:
@@ -137,9 +131,9 @@ def convert_wiki(source, dest, dest_project_id):
 
 if __name__ == "__main__":
     if method == 'api':
-        dest = gitlab_api.Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
+        dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     elif method == 'direct':
-        dest = gitlab_direct.Connection(db_name, db_user, db_password)
+        dest = Connection(db_name, db_user, db_password)
     
     source = xmlrpc.client.ServerProxy(trac_url)
     dest_project_id = get_dest_project_id(dest_project_name)

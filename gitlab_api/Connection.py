@@ -5,6 +5,12 @@ import requests
 
 __author__ = 'jens'
 
+class Bunch:
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
+
+class Issues(Bunch):
+    pass
 
 class Connection(object):
     """
@@ -67,8 +73,14 @@ class Connection(object):
         j = r.json()
         return j
 
-    def create_issue(self, dest_project_id, new_ticket):
-        return self.post_json("/projects/:id/issues", new_ticket, id=dest_project_id)
+    def create_issue(self, dest_project_id, new_issue):
+        new_ticket = self.post_json("/projects/:id/issues", new_issue.__dict__, id=dest_project_id)
+        new_ticket_id  = new_ticket["id"]
+        # setting closed in create does not work -- bug in gitlab
+        if new_issue.closed == 1: self.close_issue(dest_project_id,new_ticket_id)
+        # same for milestone
+        if "milestone" in new_issue.__dict__: self.set_issue_milestone(dest_project_id,new_ticket_id,new_issue.milestone)
+        return new_ticket
 
     def comment_issue(self,project_id,ticket_id, body):
         new_note_data = {
@@ -107,3 +119,4 @@ class Connection(object):
             v = str(value)
             result = result.replace(k, v)
         return result
+
