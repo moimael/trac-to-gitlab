@@ -23,10 +23,12 @@ Source
 Target
 -------
 
+ * ```project_name``` - the destination project including the paths to it. Basically the rest of the clone url minus the ".git". E.g. ```jens.neuhalfen/task-ninja```.
  * ```url``` - e.g. ```https://www.exmple.com/gitlab/api/v3```
  * ```access_token``` - the access token of the user creating all the issues. Found on the account page,  e.g. ```secretsecretsecret```
- * ```project_name``` - the destination project including the paths to it. Basically the rest of the clone url minus the ".git". E.g. ```jens.neuhalfen/task-ninja```.
  * ```ssl_verify``` - set to ```yes``` to verify SSL server certificates.
+
+*Note*: 
 
 Additional configuration in ```migrate.py```
 --------------------------------------------
