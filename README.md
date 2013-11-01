@@ -6,7 +6,7 @@ What
 Features
 --------
  * Component & Issue-Type are converted to labels
- * Milestones are ignored (or: I did not get the script to set my one single milestone, so I set it manually)
+ * Milestones are converted as well
  * Comments to issues are copied over
  * Wiki Syntax in comments/descriptions is sanitized for my basic usage
 
@@ -29,11 +29,6 @@ Target
  * ```ssl_verify``` - set to ```yes``` to verify SSL server certificates.
 
 *Note*: 
-
-Additional configuration in ```migrate.py```
---------------------------------------------
-
- * ```milestone_map``` - Maps milestones from trac to gitlab. Milestones have to exist in gitlab prior to running the script (_CAVE_: Assigning milestones does not work.)
 
 License
 ========

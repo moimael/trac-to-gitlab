@@ -95,19 +95,17 @@ class Connection(object):
         if new_issue.closed == 1: self.close_issue(dest_project_id,new_ticket_id)
         # same for milestone
         if "milestone" in new_issue.__dict__: self.set_issue_milestone(dest_project_id,new_ticket_id,new_issue.milestone)
-        b = Issues()
-        b.__dict__ = new_ticket
-        return b
+        return Issues.create(new_ticket)
 
     def create_milestone(self, dest_project_id, new_milestone):
+        if hasattr(new_milestone, 'due_date'):
+            new_milestone.due_date = new_milestone.due_date.isoformat()
         existing = Milestones.create(self.milestone_by_name(dest_project_id, new_milestone.title))
         if existing:
             new_milestone.id = existing.id
-            self.put_json("/projects/:id/milestones/:milestone_id", new_milestone.__dict__, id=dest_project_id, milestone_id=existing.id)
-            return new_milestone
+            return Milestones.create(self.put("/projects/:id/milestones/:milestone_id", new_milestone.__dict__, id=dest_project_id, milestone_id=existing.id))
         else:
-            self.post_json("/projects/:id/milestones", new_milestone.__dict__, id=dest_project_id)
-            return Milestones.create(self.milestone_by_name(dest_project_id, new_milestone.title))
+            return Milestones.create(self.post_json("/projects/:id/milestones", new_milestone.__dict__, id=dest_project_id))
 
     def comment_issue(self ,project_id, ticket, note, binary_attachment):
         new_note_data = {

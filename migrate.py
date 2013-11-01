@@ -68,11 +68,6 @@ elif (method == 'direct'):
 must_convert_issues = config.getboolean('issues', 'migrate')
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
-
-milestone_map = {"1.0":"1.0", "2.0":"2.0" }
-"------"
-
-
 def convert_xmlrpc_datetime(dt):
     return datetime.strptime(str(dt), "%Y%m%dT%H:%M:%S")
 
@@ -107,13 +102,13 @@ def convert_issues(source, dest, dest_project_id):
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
-            if milestone['due']:
-                new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
+        if milestone['due']:
+            new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
         new_milestone = dest.create_milestone(dest_project_id, new_milestone)
         milestone_map_id[milestone_name] = new_milestone.id
             
     print(milestone_map_id)
-
+    
     get_all_tickets = xmlrpc.client.MultiCall(source)
 
     for ticket in source.ticket.query("max=0"):
