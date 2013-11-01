@@ -62,9 +62,8 @@ elif (method == 'direct'):
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
-    users_map = create_users_map(config.get('target', 'usernames'))
 
-
+users_map = create_users_map(config.get('target', 'usernames'))
 must_convert_issues = config.getboolean('issues', 'migrate')
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
@@ -115,7 +114,6 @@ def convert_issues(source, dest, dest_project_id):
         get_all_tickets.ticket.get(ticket)
 
     for src_ticket in get_all_tickets():
-        print (src_ticket)
         src_ticket_id = src_ticket[0]
         src_ticket_data = src_ticket[3]
 
@@ -124,8 +122,9 @@ def convert_issues(source, dest, dest_project_id):
         new_issue = Issues (
             title = src_ticket_data['summary'],
             description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/'),
-            closed = 1 if is_closed else 0,
-            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] )
+            state = 'closed' if is_closed else 'opened',
+            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] ),
+            assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
         )
         # Additional parameters for direct access
         if (method == 'direct'):
@@ -134,7 +133,6 @@ def convert_issues(source, dest, dest_project_id):
             new_issue.project = dest_project_id
             new_issue.state = 'closed' if is_closed else 'opened'
             new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
-            new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
             new_issue.iid = dest.get_issues_iid(dest_project_id)
 
         milestone = src_ticket_data['milestone']
@@ -146,7 +144,6 @@ def convert_issues(source, dest, dest_project_id):
         changelog = source.ticket.changeLog(src_ticket_id)
         is_attachment = False
         for change in changelog:
-            print(change)
             change_type = change[2]
             if change_type == "attachment":
                 # The attachment will be described in the next change!

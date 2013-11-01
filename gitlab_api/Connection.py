@@ -48,6 +48,12 @@ class Connection(object):
             if milestone['title'] == milestone_name:
                 return milestone
 
+    def get_user_id(self, username):
+        users = self.get("/users")
+        for user in users:
+            if user['username'] == username:
+                return user["id"]
+
     def project_by_name(self, project_name):
         projects = self.get("/projects")
         for project in projects:
@@ -89,12 +95,14 @@ class Connection(object):
         return j
 
     def create_issue(self, dest_project_id, new_issue):
+        if hasattr(new_issue, 'milestone'):
+            new_issue.milestone_id = new_issue.milestone
+        if hasattr(new_issue, 'assignee'):
+            new_issue.assignee_id = new_issue.assignee
         new_ticket = self.post_json("/projects/:id/issues", new_issue.__dict__, id=dest_project_id)
         new_ticket_id  = new_ticket["id"]
-        # setting closed in create does not work -- bug in gitlab
-        if new_issue.closed == 1: self.close_issue(dest_project_id,new_ticket_id)
-        # same for milestone
-        if "milestone" in new_issue.__dict__: self.set_issue_milestone(dest_project_id,new_ticket_id,new_issue.milestone)
+        # setting closed in create does not work -- limitation in gitlab
+        if new_issue.state == 'closed': self.close_issue(dest_project_id,new_ticket_id)
         return Issues.create(new_ticket)
 
     def create_milestone(self, dest_project_id, new_milestone):
@@ -116,13 +124,8 @@ class Connection(object):
         self.post_json( "/projects/:project_id/issues/:issue_id/notes", new_note_data, project_id=project_id, issue_id=ticket.id)
 
 
-    def set_issue_milestone(self,project_id,ticket_id,milestone_id):
-        new_note_data = {"milestone" : milestone_id}
-        self.put("/projects/:project_id/issues/:issue_id", new_note_data, project_id=project_id, issue_id=ticket_id)
-
     def close_issue(self,project_id,ticket_id):
-        #new_note_data = "closed=1"
-        new_note_data = {"closed": "1"}
+        new_note_data = {"state_event": "close"}
         self.put("/projects/:project_id/issues/:issue_id", new_note_data, project_id=project_id, issue_id=ticket_id)
 
     def _complete_url(self, url_postfix, keywords):

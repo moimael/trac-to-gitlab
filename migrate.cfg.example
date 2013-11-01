@@ -2,6 +2,7 @@
 [source]
 url: http://username@password@example.com/trac/login/xmlrpc # URL of the XML-RPC trac endpoint 
 [target]
+usernames: trac1->git1, trac2->git2    # Comma separated list of username mappings
 project_name: foo/bar                  # project's path
 method: api                            # Method tu use: api or direct (direct is under development and not working yet) 
 url: https://gitlab.example.com/api/v3 # URL of the GitLab web API (if method = api)
@@ -10,7 +11,6 @@ access_token: secretsecret             # API access token (if method = api)
 db-name: databasename                  # database name (if method = direct)
 db-user: gitlab                        # database user (if method = direct)
 db-password: secret                    # database password (if method = direct)
-usernames: trac1->git1, trac2->git2    # Comma separated list of username mappings (if method = direct)
 uploads: /home/git/gitlab/public/uploads  # Path to the gitlab uploads directory (if method = direct)
 [wiki]
 # migrate: yes                         # Should we migrate the wiki (default = yes)
