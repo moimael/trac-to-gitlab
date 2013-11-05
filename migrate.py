@@ -100,6 +100,7 @@ def convert_issues(source, dest, dest_project_id):
     milestone_map_id={}
     for milestone_name in source.ticket.milestone.getAll():
         milestone = source.ticket.milestone.get(milestone_name)
+        print (milestone)
         new_milestone = Milestones(
             description = milestone['description'],
             title = milestone['name'],
