@@ -108,8 +108,6 @@ def convert_issues(source, dest, dest_project_id):
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
-            if overwrite:
-                new_milestone.iid = milestone['id']
         if milestone['due']:
             new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
         new_milestone = dest.create_milestone(dest_project_id, new_milestone)
