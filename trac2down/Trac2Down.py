@@ -11,8 +11,6 @@ def indent4(m):
 
 def convert(text, base_path, multilines=True):
     text = re.sub('\r\n', '\n', text)
-    if multilines:
-        text = re.sub(r'\n([^\s`*0-9#=->-_|])', r' \1', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
     text = re.sub(r'(?sm){{{\n(.*?)\n}}}', indent4, text)
     text = re.sub(r'(?m)^====\s+(.*?)\s+====$', r'#### \1', text)
@@ -24,6 +22,9 @@ def convert(text, base_path, multilines=True):
     text = re.sub(r'^     * ', r'**', text)
     text = re.sub(r'^ * ', r'*', text)
     text = re.sub(r'^ \d+. ', r'1.', text)
+    if multilines:
+        text = re.sub(r'([^=-_|])\n([^\s`*0-9#=->-_|])', r'\1 \2', text)
+
 
     a = []
     is_table = False
