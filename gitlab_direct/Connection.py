@@ -84,12 +84,11 @@ class Connection(object):
         try:
             existing = Milestones.get((Milestones.title == new_milestone.title) & (Milestones.project == dest_project_id))
             for k in new_milestone._data:
-                if (k  != 'id'):
+                if (k not in ('id', 'iid')):
                     existing._data[k] = new_milestone._data[k]
             new_milestone = existing
         except:
-            if not hasattr(new_milestone, 'iid'):
-                new_milestone.iid = Milestones.select().where(Milestones.project == dest_project_id).aggregate(fn.Count(Milestones.id)) + 1
+            new_milestone.iid = Milestones.select().where(Milestones.project == dest_project_id).aggregate(fn.Count(Milestones.id)) + 1
             new_milestone.created_at = datetime.now()
             new_milestone.updated_at = datetime.now()
         new_milestone.save()
