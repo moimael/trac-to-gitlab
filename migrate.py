@@ -29,6 +29,7 @@ Requirements
 default_config = {
     'ssl_verify': 'no',
     'migrate' : 'yes',
+    'overwrite' : 'yes',
     'exclude_authors' : 'trac',
     'uploads' : ''
 }
@@ -57,6 +58,7 @@ if (method == 'api'):
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
+    overwrite = config.getboolean('target', 'overwrite')
 elif (method == 'direct'):
     from gitlab_direct import Connection, Issues, Notes, Milestones
     db_name = config.get('target', 'db-name')
@@ -91,6 +93,9 @@ def get_dest_milestone_id(dest_project_id,milestone_name):
 
 def convert_issues(source, dest, dest_project_id):
     
+    if overwrite and (method == 'direct'):
+        dest.clear_database(dest_project_id)
+    
     milestone_map_id={}
     for milestone_name in source.ticket.milestone.getAll():
         milestone = source.ticket.milestone.get(milestone_name)
@@ -101,6 +106,8 @@ def convert_issues(source, dest, dest_project_id):
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
+            if overwrite:
+                new_milestone.iid = milestone['id']
         if milestone['due']:
             new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
         new_milestone = dest.create_milestone(dest_project_id, new_milestone)
@@ -133,7 +140,10 @@ def convert_issues(source, dest, dest_project_id):
             new_issue.project = dest_project_id
             new_issue.state = 'closed' if is_closed else 'opened'
             new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
-            new_issue.iid = dest.get_issues_iid(dest_project_id)
+            if overwrite:
+                new_issue.iid = src_ticket_id
+            else:
+                new_issue.iid = dest.get_issues_iid(dest_project_id)
 
         milestone = src_ticket_data['milestone']
         if milestone and milestone_map_id[milestone]:

@@ -21,6 +21,11 @@ class Connection(object):
         database_proxy.initialize(db)
         self.uploads_path = uploads_path
 
+    def clear_database(self, project_id):
+        Events.delete().where( (Events.project == project_id) & (Events.target_type << ['Issue', 'Note'] ) ).execute()
+        Notes.delete().where( (Notes.project == project_id) & (Notes.noteable_type == 'Issue') ).execute()
+        Issues.delete().where( Issues.project == project_id ).execute()
+        Milestones.delete().where( Milestones.project == project_id ).execute()
 
     def milestone_by_name(self, project_id, milestone_name):
         for milestone in Milestones.select().where((Milestones.title == milestone_name) & (Milestones.project == project_id)):
@@ -79,11 +84,12 @@ class Connection(object):
         try:
             existing = Milestones.get((Milestones.title == new_milestone.title) & (Milestones.project == dest_project_id))
             for k in new_milestone._data:
-                if (k not in ('id', 'iid')):
+                if (k  != 'id'):
                     existing._data[k] = new_milestone._data[k]
             new_milestone = existing
         except:
-            new_milestone.iid = Milestones.select().where(Milestones.project == dest_project_id).aggregate(fn.Count(Milestones.id)) + 1
+            if not hasattr(new_milestone, 'iid'):
+                new_milestone.iid = Milestones.select().where(Milestones.project == dest_project_id).aggregate(fn.Count(Milestones.id)) + 1
             new_milestone.created_at = datetime.now()
             new_milestone.updated_at = datetime.now()
         new_milestone.save()
