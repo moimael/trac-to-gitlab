@@ -9,9 +9,10 @@ import os
 def indent4(m):
     return '\n        ' + m.group(1).replace('\n', '\n        ')
 
-def convert(text, base_path):
+def convert(text, base_path, multilines=True):
     text = re.sub('\r\n', '\n', text)
-    text = re.sub(r'\n([^\s`*0-9#=->-_|])', r' \1', text)
+    if multilines:
+        text = re.sub(r'\n([^\s`*0-9#=->-_|])', r' \1', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
     text = re.sub(r'(?sm){{{\n(.*?)\n}}}', indent4, text)
     text = re.sub(r'(?m)^====\s+(.*?)\s+====$', r'#### \1', text)

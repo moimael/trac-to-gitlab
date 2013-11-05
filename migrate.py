@@ -129,7 +129,7 @@ def convert_issues(source, dest, dest_project_id):
         # Minimal parameters
         new_issue = Issues (
             title = src_ticket_data['summary'],
-            description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/'),
+            description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/', False),
             state = 'closed' if is_closed else 'opened',
             labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] ),
             assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
@@ -162,7 +162,7 @@ def convert_issues(source, dest, dest_project_id):
                 attachment = change
             if (change_type == "comment") and change[4] != '':
                 note = Notes(
-                    note = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/')
+                    note = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/', False)
                 )
                 binary_attachment = None
                 if (method == 'direct'):
