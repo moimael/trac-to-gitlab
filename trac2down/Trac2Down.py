@@ -11,6 +11,7 @@ def indent4(m):
 
 def convert(text, base_path):
     text = re.sub('\r\n', '\n', text)
+    text = re.sub(r'\n([^\s`*0-9#=->-_|])', r' \1', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
     text = re.sub(r'(?sm){{{\n(.*?)\n}}}', indent4, text)
     text = re.sub(r'(?m)^====\s+(.*?)\s+====$', r'#### \1', text)
