@@ -23,7 +23,7 @@ class Connection(object):
         self.uploads_path = uploads_path
 
     def clear_database(self, project_id):
-        for note in Notes.select().where((Notes.project == project_id) & (Notes.attachment is not null)):
+        for note in Notes.select().where((Notes.project == project_id) & ~Q(Notes.attachment >> None)):
             directory = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id)
             shutil.rmtree(directory)
         Events.delete().where( (Events.project == project_id) & (Events.target_type << ['Issue', 'Note'] ) ).execute()
