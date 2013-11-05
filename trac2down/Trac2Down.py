@@ -15,7 +15,7 @@ def convert(text, base_path, multilines=True):
     text = re.sub(r'(?sm){{{\n(.*?)\n}}}', indent4, text)
     
     if multilines:
-        text = re.sub(r'([^=-_|])\n([^\s`*0-9#=->-_|])', r'\1 \2', text)
+        text = re.sub(r'^\S[^\n]+([^=-_|])\n([^\s`*0-9#=->-_|])', r'\1 \2', text)
 
     text = re.sub(r'(?m)^====\s+(.*?)\s+====$', r'#### \1', text)
     text = re.sub(r'(?m)^===\s+(.*?)\s+===$', r'### \1', text)
