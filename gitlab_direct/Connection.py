@@ -3,6 +3,7 @@
 from peewee import MySQLDatabase
 from .model62 import *
 import os
+import shutil
 from datetime import datetime
 
 
@@ -22,6 +23,9 @@ class Connection(object):
         self.uploads_path = uploads_path
 
     def clear_database(self, project_id):
+        for note in Notes.select().where((Notes.project = dest_project_id) & (Notes.attachment is not null)):
+            directory = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id)
+            shutil.rmtree(directory)
         Events.delete().where( (Events.project == project_id) & (Events.target_type << ['Issue', 'Note'] ) ).execute()
         Notes.delete().where( (Notes.project == project_id) & (Notes.noteable_type == 'Issue') ).execute()
         Issues.delete().where( Issues.project == project_id ).execute()
@@ -76,7 +80,7 @@ class Connection(object):
     
     def get_user_id(self, username):
         return Users.get(Users.username == username).id
-
+    
     def get_issues_iid(self, dest_project_id):
         return Issues.select().where(Issues.project == dest_project_id).aggregate(fn.Count(Issues.id)) + 1
     
