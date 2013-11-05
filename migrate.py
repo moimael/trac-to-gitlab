@@ -58,12 +58,13 @@ if (method == 'api'):
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
-    overwrite = config.getboolean('target', 'overwrite')
 elif (method == 'direct'):
     from gitlab_direct import Connection, Issues, Notes, Milestones
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
+    overwrite = config.getboolean('target', 'overwrite')
+
 
 users_map = create_users_map(config.get('target', 'usernames'))
 must_convert_issues = config.getboolean('issues', 'migrate')
