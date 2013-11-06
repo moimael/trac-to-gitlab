@@ -76,7 +76,7 @@ Issues
 Licenses
 ========
 
-LGLP license version 3.0 (see the [licences directory](licences).
+LGLP license version 3.0 (see the [licences directory](licences)).
 
 History
 =======
