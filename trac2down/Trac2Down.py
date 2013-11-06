@@ -1,5 +1,12 @@
 #!/usr/bin/python3
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
+'''
+Copyright © 2013 
+    Eric van der Vlist <vdv@dyomedea.com>
+    Shigeru KANEMOTO <support@switch-science.com>
+See license information at the bottom of this file
+'''
+
 
 import sqlite3
 import datetime
@@ -89,4 +96,19 @@ if __name__ == "__main__":
             time= datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
         save_file(text, name, version, time, author, '')
 
+'''
+This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
 
+This sotfware is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This sotfware is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library. If not, see <http://www.gnu.org/licenses/>.
+'''

@@ -1,45 +1,93 @@
 What
 =====
 
- This script migrates issues from trac to gitlab.
+ This script migrates milestones, issues and wiki pages from trac to gitlab.
 
 Features
 --------
  * Component & Issue-Type are converted to labels
- * Milestones are converted as well
  * Comments to issues are copied over
- * Wiki Syntax in comments/descriptions is sanitized for my basic usage
+ * Supports two modes of tansfer:
+  * Using GitLab web API
+  * Direct access through GitLab's database and file system
+ * In direct mode, attachments are transfered and the issues and notes dates and ownership are preserved
+ * In API mode, attachments are not transfered, issues and notes are owned by a single user and their dates are the current date.
 
 How
 ====
 
- Usage: copy ```migrate.cfg.example``` to ```migrate.cfg```, configure the values and run it (```python migrate.py```). Make sure you test it on a test project prior, if you run it twice against the same project you will get duplicated issues.
+Migrating a trac project to GitLab is a relatively complex process involving fours steps:
+
+ * Create a new project
+ * Migrate the repository (can just be cloning a git repository if the trac project is already using git or could involve converting from subversion using git-svn)
+ * Migrate issues and milestones
+ * Migrate wiki pages
+
+This script takes care of the last two bullet points.
+
+ Usage: copy ```migrate.cfg.example``` to ```migrate.cfg```, configure the values and run it (```./migrate.py```). Make sure you test it on a test project prior, if you run it twice against the same project you will get duplicated issues unless you're using direct access with overwrite set to yes.
+
+Issues and milestones are copied to GitLab.
+
+Wiki pages are copied to a folder on your machine and must be pushed into GitLab using wiki's git access.
+
+Configuration
+=============
+
+The configuration must be located in a file named "micrate.cfg"
 
 Source
 -------
 
- * ```url``` - xmlrpc url to trac, e.g. ``https://user:secret@www.example.com/projects/thisismyproject/login/xmlrpc```
+ * ```url``` - xmlrpc url to trac, e.g. ```https://user:secret@www.example.com/projects/thisismyproject/login/xmlrpc```
 
 Target
 -------
 
  * ```project_name``` - the destination project including the paths to it. Basically the rest of the clone url minus the ".git". E.g. ```jens.neuhalfen/task-ninja```.
+ * ```method``` - direct or api
+
+ÄPI mode:
+
  * ```url``` - e.g. ```https://www.exmple.com/gitlab/api/v3```
  * ```access_token``` - the access token of the user creating all the issues. Found on the account page,  e.g. ```secretsecretsecret```
  * ```ssl_verify``` - set to ```yes``` to verify SSL server certificates.
 
-*Note*: 
+Direct mode:
 
-License
+ * ```overwrite````- if set to yes, the milestones and issues are cleared for this projects and issues are recreated with their trac id (useful to preserve trac links)
+ * ```db-name``` - MySQL database name
+ * ```db-user``` - MySQL user name
+ * ```db-password``` - MySQL password
+ * ```uploads``` - GitLab uploads directory
+ * ```usernames``` Comma separed list of username mappings such as: ```trac1->git1, trac2->git2```
+
+Wiki
+----
+
+ * ```migrate``` - Should the wiki pages be converted?
+ * ```target-directory``` - Directory in which the wiki pages should be written
+
+Issues
+------
+
+ * ```migrate``` - Should we migrate issues and milestones?
+
+Licenses
 ========
 
- Cloned from https://github.com/neuhalje/hack-copy-track-issues-to-gitlab
- License: http://www.wtfpl.net/
+LGLP license version 3.0 (see the [licences directory](licences).
+
+History
+=======
+
+ * The main program has been cloned from https://github.com/neuhalje/hack-copy-track-issues-to-gitlab
+ * Trac2down.py (the conversion of trac wiki markup to markdown) has been cloned from https://gist.github.com/sgk/1286682 and https://gist.github.com/tcchau/4628317
 
 Requirements
 ==============
 
- * ```Python 3.2, xmlrpclib, requests```
+ * Python 3.2, xmlrpclib, requests
  * Trac with [XML-RPC plugin](http://trac-hacks.org/wiki/XmlRpcPlugin) enabled
  * Gitlab
  

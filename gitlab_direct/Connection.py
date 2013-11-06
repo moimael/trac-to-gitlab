@@ -1,4 +1,11 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
+'''
+Copyright © 2013 
+    Eric van der Vlist <vdv@dyomedea.com>
+    Jens Neuhalfen <http://www.neuhalfen.name/>
+See license information at the bottom of this file
+'''
+
 
 from peewee import MySQLDatabase
 from .model62 import *
@@ -43,40 +50,6 @@ class Connection(object):
             print (project._data)
             return project._data
         return None
-
-    def get(self, url_postfix, **keywords):
-        return self._get(url_postfix, keywords)
-
-    def _get(self, url_postfix, keywords):
-        """
-        :param url_postfix: e.g. "/projects/:id/issues"
-        :param keywords:  map, e.g. { "id" : 5 }
-        :return: json of GET
-        """
-        completed_url = self._complete_url(url_postfix, keywords)
-        r = requests.get(completed_url, verify=self.verify)
-        json = r.json()
-        return json
-
-    def put(self, url_postfix, data, **keywords):
-        completed_url = self._complete_url(url_postfix, keywords)
-        r = requests.put(completed_url,data= data, verify=self.verify)
-        j = r.json()
-        return j
-
-    def put_json(self, url_postfix, data, **keywords):
-        completed_url = self._complete_url(url_postfix, keywords)
-        payload = json.dumps(data)
-        r = requests.put(completed_url, data= payload, verify=self.verify)
-        j = r.json()
-        return j
-
-    def post_json(self, url_postfix, data, **keywords):
-        completed_url = self._complete_url(url_postfix, keywords)
-        payload = json.dumps(data)
-        r = requests.post(completed_url, data=data, verify=self.verify)
-        j = r.json()
-        return j
     
     def get_user_id(self, username):
         return Users.get(Users.username == username).id
@@ -153,32 +126,19 @@ class Connection(object):
         )
         event.save()
 
+'''
+This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
 
-    def set_issue_milestone(self,project_id,ticket_id,milestone_id):
-        new_note_data = {"milestone" : milestone_id}
-        self.put("/projects/:project_id/issues/:issue_id", new_note_data, project_id=project_id, issue_id=ticket_id)
+This sotfware is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    def close_issue(self,project_id,ticket_id):
-        #new_note_data = "closed=1"
-        new_note_data = {"closed": "1"}
-        self.put("/projects/:project_id/issues/:issue_id", new_note_data, project_id=project_id, issue_id=ticket_id)
+This sotfware is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
 
-    def _complete_url(self, url_postfix, keywords):
-        url_postfix_with_params = self._url_postfix_with_params(url_postfix, keywords)
-        complete_url = "%s%s?private_token=%s" % (self.url, url_postfix_with_params, self.access_token)
-        return complete_url
-
-    def _url_postfix_with_params(self, url_postfix, keywords):
-        """
-
-        :param url_postfix:  "/projects/:id/issues"
-        :param keywords:  map, e.g. { "id" : 5 }
-        :return:  "/projects/5/issues"
-        """
-
-        result = url_postfix
-        for key, value in keywords.items():
-            k = ":" + str(key)
-            v = str(value)
-            result = result.replace(k, v)
-        return result
+You should have received a copy of the GNU Lesser General Public License
+along with this library. If not, see <http://www.gnu.org/licenses/>.
+'''

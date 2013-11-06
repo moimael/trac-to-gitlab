@@ -1,9 +1,13 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
+'''
+Copyright © 2013 
+    Eric van der Vlist <vdv@dyomedea.com>
+    Jens Neuhalfen <http://www.neuhalfen.name/>
+See license information at the bottom of this file
+'''
 
 import json
 import requests
-
-__author__ = 'jens'
 
 # See http://code.activestate.com/recipes/52308-the-simple-but-handy-collector-of-a-bunch-of-named/?in=user-97991
 class Bunch:
@@ -148,3 +152,19 @@ class Connection(object):
             result = result.replace(k, v)
         return result
 
+'''
+This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
+
+This sotfware is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This sotfware is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library. If not, see <http://www.gnu.org/licenses/>.
+'''
