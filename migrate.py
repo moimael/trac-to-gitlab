@@ -7,6 +7,7 @@ Copyright © 2013
 See license information at the bottom of this file
 '''
 import re
+import os
 import configparser
 from datetime import datetime
 from re import MULTILINE
@@ -103,7 +104,7 @@ def get_dest_milestone_id(dest_project_id,milestone_name):
 def convert_issues(source, dest, dest_project_id):
     
     if overwrite and (method == 'direct'):
-        dest.clear_database(dest_project_id)
+        dest.clear_issues(dest_project_id)
     
     milestone_map_id={}
     for milestone_name in source.ticket.milestone.getAll():
@@ -153,9 +154,10 @@ def convert_issues(source, dest, dest_project_id):
             else:
                 new_issue.iid = dest.get_issues_iid(dest_project_id)
 
-        milestone = src_ticket_data['milestone']
-        if milestone and milestone_map_id[milestone]:
-            new_issue.milestone = milestone_map_id[milestone]
+        if 'milestone' in src_ticket_data:
+            milestone = src_ticket_data['milestone']
+            if milestone and milestone_map_id[milestone]:
+                new_issue.milestone = milestone_map_id[milestone]
         new_ticket = dest.create_issue(dest_project_id, new_issue)
         new_ticket_id  = new_ticket.id
 
@@ -183,6 +185,11 @@ def convert_issues(source, dest, dest_project_id):
                 is_attachment = False
 
 def convert_wiki(source, dest, dest_project_id):
+    
+    if overwrite and (method == 'direct'):
+        dest.clear_wiki_attachments(dest_project_id)
+
+    
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
     target_directory = config.get('wiki', 'target-directory')
     server = xmlrpc.client.MultiCall(source)
@@ -193,8 +200,16 @@ def convert_wiki(source, dest, dest_project_id):
             # print "Page %s:%s|%s" % (name, info, page)
             if (name == 'WikiStart'):
                 name = 'home'
-            trac2down.save_file(trac2down.convert(page, '/wikis/'), name, info['version'], info['lastModified'], info['author'], target_directory)
-        
+            converted = trac2down.convert(page, '/wikis/')
+            if method == 'direct':
+                for attachment in source.wiki.listAttachments(name):
+                    # print(attachment)
+                    binary_attachment = source.wiki.getAttachment(attachment).data
+                    attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']], convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
+                    attachment_name = attachment.split('/')[-1]
+                    converted = converted.replace(r'](%s)' % attachment_name, r'](%s)' % os.path.relpath(attachment_path, '/namespace/project/wiki/page'))
+            trac2down.save_file(converted, name, info['version'], info['lastModified'], info['author'], target_directory)
+       
 
 if __name__ == "__main__":
     if method == 'api':
