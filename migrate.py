@@ -139,9 +139,10 @@ def convert_issues(source, dest, dest_project_id):
             title = src_ticket_data['summary'],
             description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/', False),
             state = 'closed' if is_closed else 'opened',
-            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] ),
-            assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
+            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] )
         )
+        if src_ticket_data['owner'] != '':
+            new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
         # Additional parameters for direct access
         if (method == 'direct'):
             new_issue.created_at = convert_xmlrpc_datetime(src_ticket[1])
