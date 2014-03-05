@@ -1,6 +1,6 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 '''
-Copyright © 2013 
+Copyright © 2013 - 2014
     Eric van der Vlist <vdv@dyomedea.com>
     Jens Neuhalfen <http://www.neuhalfen.name/>
 See license information at the bottom of this file
@@ -21,9 +21,6 @@ class Connection(object):
 
     def __init__(self, db_name, db_user, db_password, uploads_path):
         """
-
-        :param url: "https://www.neuhalfen.name/gitlab/api/v3"
-        :param access_token: "secretsecretsecret"
         """
         db = MySQLDatabase(db_name, **{'passwd': db_password, 'user': db_user})
         database_proxy.initialize(db)

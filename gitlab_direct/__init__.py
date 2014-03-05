@@ -1,2 +1,2 @@
 from .Connection import Connection
-from .model62 import Issues, Notes, Milestones
+from .model64 import Issues, Notes, Milestones
