@@ -93,7 +93,7 @@ def fix_wiki_syntax(markup):
 
 def get_dest_project_id(dest_project_name):
     dest_project = dest.project_by_name(dest_project_name)
-    if not dest_project: raise ValueError("Project '%s' not found under '%s'" % (dest_project_name, gitlab_url))
+    if not dest_project: raise ValueError("Project '%s' not found" % (dest_project_name))
     return dest_project["id"]
 
 def get_dest_milestone_id(dest_project_id,milestone_name):
