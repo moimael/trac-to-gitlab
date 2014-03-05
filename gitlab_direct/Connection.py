@@ -8,7 +8,7 @@ See license information at the bottom of this file
 
 
 from peewee import MySQLDatabase
-from .model62 import *
+from .model64 import *
 import os
 import shutil
 from datetime import datetime

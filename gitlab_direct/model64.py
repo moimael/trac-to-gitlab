@@ -1,13 +1,14 @@
 from peewee import *
+from playhouse.proxy import Proxy
 
-database = MySQLDatabase('gitlabhq_production', **{'passwd': 'eePh6ais', 'user': 'gitlab'})
+database_proxy = Proxy()
 
 class UnknownFieldType(object):
     pass
 
 class BaseModel(Model):
     class Meta:
-        database = database
+        database = database_proxy
 
 class Broadcast_Messages(BaseModel):
     alert_type = IntegerField(null=True)
@@ -157,7 +158,7 @@ class Projects(BaseModel):
     last_activity_at = DateTimeField(null=True)
     merge_requests_enabled = IntegerField()
     name = CharField(null=True)
-    namespace = IntegerField(null=True, db_column='namespace_id')
+    namespace = ForeignKeyField(Namespaces, db_column='namespace_id')
     path = CharField(null=True)
     snippets_enabled = IntegerField()
     updated_at = DateTimeField()
