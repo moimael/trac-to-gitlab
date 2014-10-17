@@ -36,8 +36,8 @@ Requirements
 
 default_config = {
     'ssl_verify': 'no',
-    'migrate' : 'yes',
-    'overwrite' : 'yes',
+    'migrate' : 'true',
+    'overwrite' : 'true',
     'exclude_authors' : 'trac',
     'uploads' : ''
 }
@@ -52,6 +52,7 @@ uploads_path = config.get('target', 'uploads')
 
 method = config.get('target', 'method')
 
+
 def create_users_map(usernames):
     umap = {}
     for user in usernames.split(','):
@@ -63,11 +64,13 @@ def create_users_map(usernames):
 
 if (method == 'api'):
     from gitlab_api import Connection, Issues, Notes, Milestones
+    print("importing api")
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
     overwrite = False
 elif (method == 'direct'):
+    print("importing direct")
     from gitlab_direct import Connection, Issues, Notes, Milestones
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
@@ -91,18 +94,17 @@ def fix_wiki_syntax(markup):
     return markup
 
 
-def get_dest_project_id(dest_project_name):
+def get_dest_project_id(dest, dest_project_name):
     dest_project = dest.project_by_name(dest_project_name)
     if not dest_project: raise ValueError("Project '%s' not found" % (dest_project_name))
     return dest_project["id"]
 
-def get_dest_milestone_id(dest_project_id,milestone_name):
+def get_dest_milestone_id(dest, dest_project_id,milestone_name):
     dest_milestone_id = dest.milestone_by_name(dest_project_id,milestone_name )
     if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name,dest_project_name))
     return dest_milestone_id["id"]
 
 def convert_issues(source, dest, dest_project_id):
-    
     if overwrite and (method == 'direct'):
         dest.clear_issues(dest_project_id)
     
@@ -186,7 +188,6 @@ def convert_issues(source, dest, dest_project_id):
                 is_attachment = False
 
 def convert_wiki(source, dest, dest_project_id):
-    
     if overwrite and (method == 'direct'):
         dest.clear_wiki_attachments(dest_project_id)
 
@@ -216,10 +217,10 @@ if __name__ == "__main__":
     if method == 'api':
         dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     elif method == 'direct':
-        dest = Connection(db_name, db_user, db_password, uploads_path)
+    	dest = Connection(db_name, db_user, db_password, uploads_path)
     
     source = xmlrpc.client.ServerProxy(trac_url)
-    dest_project_id = get_dest_project_id(dest_project_name)
+    dest_project_id = get_dest_project_id(dest, dest_project_name)
 
     if must_convert_issues:
         convert_issues(source, dest, dest_project_id)

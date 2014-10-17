@@ -7,8 +7,8 @@ See license information at the bottom of this file
 '''
 
 
-from peewee import MySQLDatabase
-from .model64 import *
+from peewee import PostgresqlDatabase
+from .model732 import *
 import os
 import shutil
 from datetime import datetime
@@ -22,8 +22,8 @@ class Connection(object):
     def __init__(self, db_name, db_user, db_password, uploads_path):
         """
         """
-        db = MySQLDatabase(db_name, **{'passwd': db_password, 'user': db_user})
-        database_proxy.initialize(db)
+        db = PostgresqlDatabase(db_name, user= db_user, host="/tmp/")
+        #database_proxy.initialize(db)
         self.uploads_path = uploads_path
 
     def clear_issues(self, project_id):
@@ -61,7 +61,7 @@ class Connection(object):
     def project_by_name(self, project_name):
         (namespace, name) = project_name.split('/')
         print(name)
-        for project in Projects.select().join(Namespaces).where((Projects.name == name) & (Namespaces.name == namespace)):
+        for project in Projects.select().join(Namespaces, on=(Projects.namespace == Namespaces.id )).where((Projects.path == name) & (Namespaces.path == namespace)):
             print (project._data)
             return project._data
         return None
