@@ -6,6 +6,7 @@ Copyright © 2013
     Jens Neuhalfen <http://www.neuhalfen.name/>
 See license information at the bottom of this file
 '''
+
 import re
 import os
 import ConfigParser
@@ -13,6 +14,7 @@ from datetime import datetime
 from re import MULTILINE
 import xmlrpclib
 import trac2down
+
 """
 What
 =====
@@ -115,7 +117,7 @@ def convert_issues(source, dest, dest_project_id):
         new_milestone = Milestones(
             description = milestone['description'],
             title = milestone['name'],
-            state = 'active' if milestone['completed'] == 0 else 'completed'
+            state = 'active' if not 'completed' in milestone.keys()  else 'completed'
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
