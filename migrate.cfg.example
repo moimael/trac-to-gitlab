@@ -14,8 +14,8 @@ usernames: trac1->git1, trac2->git2
 # project's path
 project_name: foo/bar
 
-# Method tu use: api or direct (direct is under development and not working yet) 
-method: api
+# Method to use: api or direct
+method: direct
 
 # URL of the GitLab web API (if method = api)
 url: https://gitlab.example.com/api/v3
