@@ -36,12 +36,12 @@ GitLab versions
 
 The database model should correspond to the version of GitLab that you are using.
 
-This repo contains models for versions [6.2](gitlab_direct/model62.py) and [6.4](gitlab_direct/model64.py) and the version number should be updated correspondingly in the imports in [gitlab_direct/__init__.py](gitlab_direct/__init__.py) and [gitlab_direct/Connection.py](gitlab_direct/Connection.py).
+This repo contains models for multiple versions (gitlab_direct/model<version>.py) and the version number should be updated correspondingly in the imports in [gitlab_direct/__init__.py](gitlab_direct/__init__.py) and [gitlab_direct/Connection.py](gitlab_direct/Connection.py).
 
 To support a new version, use pwiz.py:
 
 ```
-$ pwiz.py -e mysql -u <user> -P <password> <database> > gitlab_direct/model<version>.py
+$ pwiz.py -e postgresql -u gitlab gitlabhq_production > gitlab_direct/model<version>.py
 ```
 
 Manual updates must then be applied, see for instance the [manual updates for 6.4](https://gitlab.dyomedea.com/vdv/trac-to-gitlab/commit/8a5592a7b996054849bf7ac21fd5fec267db1df9).
