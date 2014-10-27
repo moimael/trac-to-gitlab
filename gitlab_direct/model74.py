@@ -6,7 +6,7 @@ class UnknownField(object):
     pass
 
 class BaseModel(Model):
-    class Meta:
+    class Meta(object):
         database = database
 
 class BroadcastMessages(BaseModel):
@@ -19,7 +19,7 @@ class BroadcastMessages(BaseModel):
     starts_at = DateTimeField(null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'broadcast_messages'
 
 class DeployKeysProjects(BaseModel):
@@ -28,7 +28,7 @@ class DeployKeysProjects(BaseModel):
     project = IntegerField(db_column='project_id')
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'deploy_keys_projects'
 
 class Emails(BaseModel):
@@ -37,7 +37,7 @@ class Emails(BaseModel):
     updated_at = DateTimeField(null=True)
     user = IntegerField(db_column='user_id')
 
-    class Meta:
+    class Meta(object):
         db_table = 'emails'
 
 class Events(BaseModel):
@@ -51,7 +51,7 @@ class Events(BaseModel):
     title = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'events'
 
 class ForkedProjectLinks(BaseModel):
@@ -60,7 +60,7 @@ class ForkedProjectLinks(BaseModel):
     forked_to_project = IntegerField(db_column='forked_to_project_id')
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'forked_project_links'
 
 class Issues(BaseModel):
@@ -77,7 +77,7 @@ class Issues(BaseModel):
     title = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'issues'
 
 class Keys(BaseModel):
@@ -89,7 +89,7 @@ class Keys(BaseModel):
     updated_at = DateTimeField(null=True)
     user = IntegerField(db_column='user_id', null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'keys'
 
 class LabelLinks(BaseModel):
@@ -99,7 +99,7 @@ class LabelLinks(BaseModel):
     target_type = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'label_links'
 
 class Labels(BaseModel):
@@ -109,7 +109,7 @@ class Labels(BaseModel):
     title = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'labels'
 
 class Members(BaseModel):
@@ -122,7 +122,7 @@ class Members(BaseModel):
     updated_at = DateTimeField(null=True)
     user = IntegerField(db_column='user_id')
 
-    class Meta:
+    class Meta(object):
         db_table = 'members'
 
 class MergeRequestDiffs(BaseModel):
@@ -133,7 +133,7 @@ class MergeRequestDiffs(BaseModel):
     state = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'merge_request_diffs'
 
 class MergeRequests(BaseModel):
@@ -153,7 +153,7 @@ class MergeRequests(BaseModel):
     title = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'merge_requests'
 
 class Milestones(BaseModel):
@@ -166,7 +166,7 @@ class Milestones(BaseModel):
     title = CharField(max_length=255)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'milestones'
 
 class Namespaces(BaseModel):
@@ -179,7 +179,7 @@ class Namespaces(BaseModel):
     type = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'namespaces'
 
 class Notes(BaseModel):
@@ -196,7 +196,7 @@ class Notes(BaseModel):
     system = BooleanField()
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'notes'
 
 class Projects(BaseModel):
@@ -222,7 +222,7 @@ class Projects(BaseModel):
     wall_enabled = BooleanField()
     wiki_enabled = BooleanField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'projects'
 
 class ProtectedBranches(BaseModel):
@@ -231,13 +231,13 @@ class ProtectedBranches(BaseModel):
     project = IntegerField(db_column='project_id')
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'protected_branches'
 
 class SchemaMigrations(BaseModel):
     version = CharField(max_length=255)
 
-    class Meta:
+    class Meta(object):
         db_table = 'schema_migrations'
 
 class Services(BaseModel):
@@ -249,7 +249,7 @@ class Services(BaseModel):
     type = CharField(max_length=255, null=True)
     updated_at = DateTimeField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'services'
 
 class Snippets(BaseModel):
@@ -264,7 +264,7 @@ class Snippets(BaseModel):
     updated_at = DateTimeField(null=True)
     visibility_level = IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'snippets'
 
 class Taggings(BaseModel):
@@ -276,13 +276,13 @@ class Taggings(BaseModel):
     tagger = IntegerField(db_column='tagger_id', null=True)
     tagger_type = CharField(max_length=255, null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'taggings'
 
 class Tags(BaseModel):
     name = CharField(max_length=255, null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'tags'
 
 class Users(BaseModel):
@@ -328,7 +328,7 @@ class Users(BaseModel):
     username = CharField(max_length=255, null=True)
     website_url = CharField(max_length=255)
 
-    class Meta:
+    class Meta(object):
         db_table = 'users'
 
 class UsersStarProjects(BaseModel):
@@ -337,7 +337,7 @@ class UsersStarProjects(BaseModel):
     updated_at = DateTimeField(null=True)
     user = IntegerField(db_column='user_id')
 
-    class Meta:
+    class Meta(object):
         db_table = 'users_star_projects'
 
 class WebHooks(BaseModel):
@@ -352,6 +352,6 @@ class WebHooks(BaseModel):
     updated_at = DateTimeField(null=True)
     url = CharField(max_length=255, null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'web_hooks'
 

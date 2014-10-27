@@ -8,10 +8,10 @@ See license information at the bottom of this file
 '''
 import re
 import os
-import configparser
+import ConfigParser
 from datetime import datetime
 from re import MULTILINE
-import xmlrpc.client
+import xmlrpclib
 import trac2down
 """
 What
@@ -27,10 +27,10 @@ License
 Requirements
 ==============
 
- * Python 3.2, xmlrpclib, requests
+ * Python 2, xmlrpclib, requests
  * Trac with xmlrpc plugin enabled
  * Peewee (direct method)
- * Gitlab
+ * GitLab
 
 """
 
@@ -42,7 +42,7 @@ default_config = {
     'uploads' : ''
 }
 
-config = configparser.ConfigParser(default_config)
+config = ConfigParser.ConfigParser(default_config)
 config.read('migrate.cfg')
 
 
@@ -58,19 +58,19 @@ def create_users_map(usernames):
     for user in usernames.split(','):
         (trac, gitlab) = user.split('->')
         umap[trac.strip()] = gitlab.strip()
-    print(umap)
+    print umap
     return umap
 
 
 if (method == 'api'):
     from gitlab_api import Connection, Issues, Notes, Milestones
-    print("importing api")
+    print "importing api"
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
     overwrite = False
 elif (method == 'direct'):
-    print("importing direct")
+    print "importing direct"
     from gitlab_direct import Connection, Issues, Notes, Milestones
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
@@ -111,7 +111,7 @@ def convert_issues(source, dest, dest_project_id):
     milestone_map_id={}
     for milestone_name in source.ticket.milestone.getAll():
         milestone = source.ticket.milestone.get(milestone_name)
-        print (milestone)
+        print milestone
         new_milestone = Milestones(
             description = milestone['description'],
             title = milestone['name'],
@@ -123,10 +123,10 @@ def convert_issues(source, dest, dest_project_id):
             new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
         new_milestone = dest.create_milestone(dest_project_id, new_milestone)
         milestone_map_id[milestone_name] = new_milestone.id
-            
-    print(milestone_map_id)
-    
-    get_all_tickets = xmlrpc.client.MultiCall(source)
+
+    print milestone_map_id
+
+    get_all_tickets = xmlrpclib.MultiCall(source)
 
     for ticket in source.ticket.query("max=0"):
         get_all_tickets.ticket.get(ticket)
@@ -191,10 +191,9 @@ def convert_wiki(source, dest, dest_project_id):
     if overwrite and (method == 'direct'):
         dest.clear_wiki_attachments(dest_project_id)
 
-    
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
     target_directory = config.get('wiki', 'target-directory')
-    server = xmlrpc.client.MultiCall(source)
+    server = xmlrpclib.MultiCall(source)
     for name in source.wiki.getAllPages():
         info = source.wiki.getPageInfo(name)
         if (info['author'] not in exclude_authors):
@@ -211,15 +210,15 @@ def convert_wiki(source, dest, dest_project_id):
                     attachment_name = attachment.split('/')[-1]
                     converted = converted.replace(r'](%s)' % attachment_name, r'](%s)' % os.path.relpath(attachment_path, '/namespace/project/wiki/page'))
             trac2down.save_file(converted, name, info['version'], info['lastModified'], info['author'], target_directory)
-       
+
 
 if __name__ == "__main__":
     if method == 'api':
         dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     elif method == 'direct':
-    	dest = Connection(db_name, db_user, db_password, uploads_path)
-    
-    source = xmlrpc.client.ServerProxy(trac_url)
+        dest = Connection(db_name, db_user, db_password, uploads_path)
+
+    source = xmlrpclib.ServerProxy(trac_url)
     dest_project_id = get_dest_project_id(dest, dest_project_name)
 
     if must_convert_issues:

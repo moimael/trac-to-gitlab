@@ -7,7 +7,7 @@ class UnknownFieldType(object):
     pass
 
 class BaseModel(Model):
-    class Meta:
+    class Meta(object):
         database = database_proxy
 
 class Deploy_Keys_Projects(BaseModel):
@@ -16,7 +16,7 @@ class Deploy_Keys_Projects(BaseModel):
     project = IntegerField(db_column='project_id')
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'deploy_keys_projects'
 
 class Events(BaseModel):
@@ -30,7 +30,7 @@ class Events(BaseModel):
     title = CharField(null=True)
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'events'
 
 class Forked_Project_Links(BaseModel):
@@ -39,7 +39,7 @@ class Forked_Project_Links(BaseModel):
     forked_to_project = IntegerField(db_column='forked_to_project_id')
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'forked_project_links'
 
 class Issues(BaseModel):
@@ -56,7 +56,7 @@ class Issues(BaseModel):
     title = CharField(null=True)
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'issues'
 
 class Keys(BaseModel):
@@ -68,7 +68,7 @@ class Keys(BaseModel):
     updated_at = DateTimeField()
     user = IntegerField(null=True, db_column='user_id')
 
-    class Meta:
+    class Meta(object):
         db_table = 'keys'
 
 class Merge_Requests(BaseModel):
@@ -89,7 +89,7 @@ class Merge_Requests(BaseModel):
     title = CharField(null=True)
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'merge_requests'
 
 class Milestones(BaseModel):
@@ -102,7 +102,7 @@ class Milestones(BaseModel):
     title = CharField()
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'milestones'
 
 class Namespaces(BaseModel):
@@ -114,7 +114,7 @@ class Namespaces(BaseModel):
     type = CharField(null=True)
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'namespaces'
 
 class Notes(BaseModel):
@@ -131,7 +131,7 @@ class Notes(BaseModel):
     system = IntegerField()
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'notes'
 
 class Projects(BaseModel):
@@ -155,7 +155,7 @@ class Projects(BaseModel):
     wall_enabled = IntegerField()
     wiki_enabled = IntegerField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'projects'
 
 class Protected_Branches(BaseModel):
@@ -164,13 +164,13 @@ class Protected_Branches(BaseModel):
     project = IntegerField(db_column='project_id')
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'protected_branches'
 
 class Schema_Migrations(BaseModel):
     version = CharField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'schema_migrations'
 
 class Services(BaseModel):
@@ -185,7 +185,7 @@ class Services(BaseModel):
     type = CharField(null=True)
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'services'
 
 class Snippets(BaseModel):
@@ -200,7 +200,7 @@ class Snippets(BaseModel):
     type = CharField(null=True)
     updated_at = DateTimeField()
 
-    class Meta:
+    class Meta(object):
         db_table = 'snippets'
 
 class Taggings(BaseModel):
@@ -212,13 +212,13 @@ class Taggings(BaseModel):
     tagger = IntegerField(null=True, db_column='tagger_id')
     tagger_type = CharField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'taggings'
 
 class Tags(BaseModel):
     name = CharField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'tags'
 
 class Users(BaseModel):
@@ -261,7 +261,7 @@ class Users(BaseModel):
     updated_at = DateTimeField()
     username = CharField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'users'
 
 class Users_Groups(BaseModel):
@@ -272,7 +272,7 @@ class Users_Groups(BaseModel):
     updated_at = DateTimeField()
     user = IntegerField(db_column='user_id')
 
-    class Meta:
+    class Meta(object):
         db_table = 'users_groups'
 
 class Users_Projects(BaseModel):
@@ -283,7 +283,7 @@ class Users_Projects(BaseModel):
     updated_at = DateTimeField()
     user = IntegerField(db_column='user_id')
 
-    class Meta:
+    class Meta(object):
         db_table = 'users_projects'
 
 class Web_Hooks(BaseModel):
@@ -294,5 +294,5 @@ class Web_Hooks(BaseModel):
     updated_at = DateTimeField()
     url = CharField(null=True)
 
-    class Meta:
+    class Meta(object):
         db_table = 'web_hooks'

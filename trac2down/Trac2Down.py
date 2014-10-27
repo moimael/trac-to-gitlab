@@ -7,10 +7,12 @@ See license information at the bottom of this file
 '''
 
 
+from __future__ import division
 import sqlite3
 import datetime
 import re
 import os
+from io import open
 
 def indent4(m):
     return '\n        ' + m.group(2).replace('\n', '\n        ')
@@ -65,10 +67,10 @@ def convert(text, base_path, multilines=True):
 
 def save_file(text, name, version, date, author, directory):
     fp = open('%s%s.markdown' % (directory, name), 'w')
-    print('<!-- Name: %s -->' % name, file=fp)
-    print('<!-- Version: %d -->' % version, file=fp)
-    print('<!-- Last-Modified: %s -->' % date, file=fp)
-    print('<!-- Author: %s -->' % author, file=fp)
+    print >>fp, '<!-- Name: %s -->' % name
+    print >>fp, '<!-- Version: %d -->' % version
+    print >>fp, '<!-- Last-Modified: %s -->' % date
+    print >>fp, '<!-- Author: %s -->' % author
     fp.write(text)
     fp.close()
 
