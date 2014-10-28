@@ -109,7 +109,7 @@ def convert_issues(source, dest, dest_project_id):
         new_milestone = Milestones(
             description = milestone['description'],
             title = milestone['name'],
-            state = 'active' if not 'completed' in milestone.keys()  else 'completed'
+            state = 'active' if str(milestone['completed']) == '0'  else 'completed'
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
