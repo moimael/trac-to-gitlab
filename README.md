@@ -20,12 +20,19 @@ Migrating a trac project to GitLab is a relatively complex process involving fou
 
  * Create a new project
  * Migrate the repository (can just be cloning a git repository if the trac project is already using git or could involve converting from subversion using git-svn)
+ * Create the users for the project
  * Migrate issues and milestones
  * Migrate wiki pages
 
-This script takes care of the last two bullet points.
+This script takes care of the last two bullet points and provides help for the third one.
 
- Usage: copy ```migrate.cfg.example``` to ```migrate.cfg```, configure the values and run it (```./migrate.py```). Make sure you test it on a test project prior, if you run it twice against the same project you will get duplicated issues unless you're using direct access with overwrite set to yes.
+ Usage:
+
+  1. copy ```migrate.cfg.example``` to ```migrate.cfg```
+  2. configure the values
+  3. run ```./collect-users.py``` to extract the user names from Trac
+  4. update ```migrate.cfg``` and create the users in GitLab
+  5. run (```./migrate.py```). Make sure you test it on a test project prior, if you run it twice against the same project you will get duplicated issues unless you're using direct access with overwrite set to yes.
 
 Issues and milestones are copied to GitLab.
 
