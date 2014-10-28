@@ -10,6 +10,7 @@ See license information at the bottom of this file
 import re
 import os
 import ConfigParser
+import ast
 from datetime import datetime
 from re import MULTILINE
 import xmlrpclib
@@ -55,15 +56,6 @@ uploads_path = config.get('target', 'uploads')
 method = config.get('target', 'method')
 
 
-def create_users_map(usernames):
-    umap = {}
-    for user in usernames.split(','):
-        (trac, gitlab) = user.split('->')
-        umap[trac.strip()] = gitlab.strip()
-    print umap
-    return umap
-
-
 if (method == 'api'):
     from gitlab_api import Connection, Issues, Notes, Milestones
     print "importing api"
@@ -80,7 +72,7 @@ elif (method == 'direct'):
     overwrite = config.getboolean('target', 'overwrite')
 
 
-users_map = create_users_map(config.get('target', 'usernames'))
+users_map = ast.literal_eval(config.get('target', 'usernames'))
 must_convert_issues = config.getboolean('issues', 'migrate')
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 

@@ -8,8 +8,11 @@ url: http://username:password@example.com/trac/login/xmlrpc
 
 [target]
 
-# Comma separated list of username mappings
-usernames: trac1->git1, trac2->git2
+# Trac to GitLab user mappings
+usernames = {
+    'trac1': 'git1',
+    'trac2': 'git2'
+    }
 
 # project's path
 project_name: foo/bar
