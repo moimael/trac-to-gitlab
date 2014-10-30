@@ -101,7 +101,7 @@ def get_dest_milestone_id(dest, dest_project_id,milestone_name):
 def convert_issues(source, dest, dest_project_id):
     if overwrite and (method == 'direct'):
         dest.clear_issues(dest_project_id)
-    
+
     milestone_map_id={}
     for milestone_name in source.ticket.milestone.getAll():
         milestone = source.ticket.milestone.get(milestone_name)
@@ -109,7 +109,7 @@ def convert_issues(source, dest, dest_project_id):
         new_milestone = Milestones(
             description = milestone['description'],
             title = milestone['name'],
-            state = 'active' if str(milestone['completed']) == '0'  else 'completed'
+            state = 'active' if str(milestone['completed']) == '0'  else 'closed'
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
@@ -129,12 +129,25 @@ def convert_issues(source, dest, dest_project_id):
         src_ticket_id = src_ticket[0]
         src_ticket_data = src_ticket[3]
 
-        is_closed =  src_ticket_data['status'] == "closed"
+        src_ticket_status = src_ticket_data['status']
+
+        new_state = ''
+        if src_ticket_status == 'new':
+            new_state = 'opened'
+        elif src_ticket_status == 'assigned':
+            new_state = 'opened'
+        elif src_ticket_status == 'reopened':
+            new_state = 'reopened'
+        elif src_ticket_status == 'closed':
+            new_state = 'closed'
+        else:
+            print "!!! unknown ticket status:", src_ticket_status
+
         # Minimal parameters
         new_issue = Issues (
             title = src_ticket_data['summary'],
             description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/', False),
-            state = 'closed' if is_closed else 'opened',
+            state = new_state,
             labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] )
         )
         if src_ticket_data['owner'] != '':
@@ -144,7 +157,7 @@ def convert_issues(source, dest, dest_project_id):
             new_issue.created_at = convert_xmlrpc_datetime(src_ticket[1])
             new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
             new_issue.project = dest_project_id
-            new_issue.state = 'closed' if is_closed else 'opened'
+            new_issue.state = new_state
             new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
             if overwrite:
                 new_issue.iid = src_ticket_id
