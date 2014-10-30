@@ -28,6 +28,14 @@ class Connection(object):
         self.uploads_path = uploads_path
 
     def clear_issues(self, project_id):
+
+        # Delete all the uses of the labels of the project.
+        for label in Labels.select().where( Labels.project == project_id ):
+            LabelLinks.delete().where( LabelLinks.label == label.id ).execute()
+            ## You probably do not want to delete the labels themselves, otherwise you'd need to
+            ## set their colour every time when you re-run the migration.
+            #label.delete_instance()
+
         # Delete issues and everything that goes with them...
         for issue in Issues.select().where(Issues.project == project_id):
             for note in Notes.select().where( (Notes.project == project_id) & (Notes.noteable_type == 'Issue') & (Notes.noteable == issue.id)):
@@ -38,7 +46,8 @@ class Connection(object):
                     except:
                         pass
                 Events.delete().where( (Events.project == project_id) & (Events.target_type == 'Note' ) & (Events.target == note.id) ).execute()
-                note.delete_instance()    
+                note.delete_instance()
+
             Events.delete().where( (Events.project == project_id) & (Events.target_type == 'Issue' ) & (Events.target == issue.id) ).execute()
             issue.delete_instance()
 
@@ -52,7 +61,7 @@ class Connection(object):
             except:
                     pass
             Events.delete().where( (Events.project == project_id) & (Events.target_type == 'Note' ) & (Events.target == note.id) ).execute()
-            note.delete_instance()    
+            note.delete_instance()
 
     def milestone_by_name(self, project_id, milestone_name):
         for milestone in Milestones.select().where((Milestones.title == milestone_name) & (Milestones.project == project_id)):
@@ -66,13 +75,13 @@ class Connection(object):
             print project._data
             return project._data
         return None
-    
+
     def get_user_id(self, username):
         return Users.get(Users.username == username).id
-    
+
     def get_issues_iid(self, dest_project_id):
         return Issues.select().where(Issues.project == dest_project_id).aggregate(fn.Count(Issues.id)) + 1
-    
+
     def create_milestone(self, dest_project_id, new_milestone):
         try:
             existing = Milestones.get((Milestones.title == new_milestone.title) & (Milestones.project == dest_project_id))
@@ -86,7 +95,7 @@ class Connection(object):
             new_milestone.updated_at = datetime.now()
         new_milestone.save()
         return new_milestone
-        
+
 
     def create_issue(self, dest_project_id, new_issue):
         new_issue.save()
@@ -127,7 +136,7 @@ class Connection(object):
         note.noteable = ticket.id
         note.noteable_type = 'Issue'
         note.save()
-        
+
         if binary_attachment:
             directory = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id)
             if not os.path.exists(directory):
@@ -136,7 +145,7 @@ class Connection(object):
             file = open(path,"wb")
             file.write(binary_attachment)
             file.close()
-        
+
         event = Events.create(
             action = 1,
             author = note.author,
@@ -147,7 +156,7 @@ class Connection(object):
             updated_at = note.created_at
         )
         event.save()
-        
+
     def create_wiki_attachment(self, project_id, user, last_modified, path, binary):
         note = Notes.create(
             project = project_id,
@@ -165,7 +174,7 @@ class Connection(object):
         file = open(full_path,"wb")
         file.write(binary)
         file.close()
-        
+
         event = Events.create(
             action = 1,
             author = note.author,
@@ -178,7 +187,7 @@ class Connection(object):
         event.save()
 
         return '/files/note/%s/%s' % (note.id, path)
-        
+
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
 
