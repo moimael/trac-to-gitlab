@@ -41,7 +41,7 @@ class Connection(object):
                 note.delete_instance()    
             Events.delete().where( (Events.project == project_id) & (Events.target_type == 'Issue' ) & (Events.target == issue.id) ).execute()
             issue.delete_instance()
-            
+
         Milestones.delete().where( Milestones.project == project_id ).execute()
 
     def clear_wiki_attachments(self, project_id):
@@ -100,20 +100,26 @@ class Connection(object):
             updated_at = new_issue.created_at
         )
         event.save()
-        for label in set(new_issue.labels.split(',')):
+        for title in set(new_issue.labels.split(',')):
             try:
-                tag = Tags.get(Tags.name == label)
+                label = Labels.get((Labels.title == title) & (Labels.project == dest_project_id))
             except:
-                tag = Tags.create(name = label)
-                tag.save()
-            tagging = Taggings.create(
-                tag = tag.id,
-                taggable = new_issue.id,
-                taggable_type = 'Issue',
-                context = 'labels',
-                created_at = new_issue.created_at
+                label = Labels.create(
+                    title = label,
+                    color = '#0000FF',
+                    project = dest_project_id,
+                    created_at = new_issue.created_at,
+                    update_at = new_issue.created_at
+                )
+                label.save()
+            label_link = LabelLinks.create(
+                label = label.id,
+                target = new_issue.id,
+                target_type = 'Issue',
+                created_at = new_issue.created_at,
+                update_at = new_issue.created_at
             )
-            tagging.save()
+            label_link.save()
         return new_issue
 
     def comment_issue(self ,project_id, ticket, note, binary_attachment):
