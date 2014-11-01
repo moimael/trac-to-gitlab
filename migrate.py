@@ -129,7 +129,49 @@ def convert_issues(source, dest, dest_project_id):
         src_ticket_id = src_ticket[0]
         src_ticket_data = src_ticket[3]
 
+        src_ticket_priority = src_ticket_data['priority']
+        src_ticket_resolution = src_ticket_data['resolution']
+        src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
+        src_ticket_keywords = src_ticket_data['keywords']
+
+        new_labels = []
+        if src_ticket_priority == 'high':
+            new_labels.append('high priority')
+        elif src_ticket_priority == 'medium':
+            pass
+        elif src_ticket_priority == 'low':
+            new_labels.append('low priority')
+
+        if src_ticket_resolution == '':
+            # active ticket
+            pass
+        elif src_ticket_resolution == 'fixed':
+            pass
+        elif src_ticket_resolution == 'invalid':
+            new_labels.append('invalid')
+        elif src_ticket_resolution == 'wontfix':
+            new_labels.append("won't fix")
+        elif src_ticket_resolution == 'duplicate':
+            new_labels.append('duplicate')
+        elif src_ticket_resolution == 'worksforme':
+            new_labels.append('works for me')
+
+        if src_ticket_severity == 'high':
+            new_labels.append('critical')
+        elif src_ticket_severity == 'medium':
+            pass
+        elif src_ticket_severity == 'low':
+            new_labels.append("minor")
+
+        # Current ticket types are: enhancement, defect, compilation, performance, style, scientific, task, requirement
+        new_labels.append(src_ticket_type)
+
+        if src_ticket_keywords != '':
+            for keyword in src_ticket_keywords.split(','):
+                new_labels.append(keyword.strip())
+
+        print "new labels:", new_labels
 
         new_state = ''
         if src_ticket_status == 'new':
@@ -148,8 +190,9 @@ def convert_issues(source, dest, dest_project_id):
             title = src_ticket_data['summary'],
             description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/', False),
             state = new_state,
-            labels = ",".join( [src_ticket_data['type'], src_ticket_data['component'], src_ticket_data['type']] )
+            labels = ",".join( new_labels )
         )
+
         if src_ticket_data['owner'] != '':
             new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
         # Additional parameters for direct access
