@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 '''
-Copyright © 2013 
+Copyright © 2013
     Eric van der Vlist <vdv@dyomedea.com>
     Jens Neuhalfen <http://www.neuhalfen.name/>
 See license information at the bottom of this file
