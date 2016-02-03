@@ -24,7 +24,7 @@ class Connection(object):
         """
         """
         db = PostgresqlDatabase(db_name, user= db_user, host="/tmp/")
-        #database_proxy.initialize(db)
+        database_proxy.initialize(db)
         self.uploads_path = uploads_path
 
     def clear_issues(self, project_id):
