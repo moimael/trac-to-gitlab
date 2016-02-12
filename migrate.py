@@ -73,6 +73,7 @@ elif (method == 'direct'):
 
 
 users_map = ast.literal_eval(config.get('target', 'usernames'))
+default_user = config.get('target', 'default_user')
 must_convert_issues = config.getboolean('issues', 'migrate')
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
@@ -118,8 +119,6 @@ def convert_issues(source, dest, dest_project_id):
         new_milestone = dest.create_milestone(dest_project_id, new_milestone)
         milestone_map_id[milestone_name] = new_milestone.id
 
-    print milestone_map_id
-
     get_all_tickets = xmlrpclib.MultiCall(source)
 
     for ticket in source.ticket.query("max=0"):
@@ -131,9 +130,9 @@ def convert_issues(source, dest, dest_project_id):
 
         src_ticket_priority = src_ticket_data['priority']
         src_ticket_resolution = src_ticket_data['resolution']
-        src_ticket_severity = src_ticket_data['severity']
+        # src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
-        src_ticket_keywords = src_ticket_data['keywords']
+        src_ticket_component = src_ticket_data['component']
 
         new_labels = []
         if src_ticket_priority == 'high':
@@ -157,19 +156,19 @@ def convert_issues(source, dest, dest_project_id):
         elif src_ticket_resolution == 'worksforme':
             new_labels.append('works for me')
 
-        if src_ticket_severity == 'high':
-            new_labels.append('critical')
-        elif src_ticket_severity == 'medium':
-            pass
-        elif src_ticket_severity == 'low':
-            new_labels.append("minor")
+        # if src_ticket_severity == 'high':
+        #     new_labels.append('critical')
+        # elif src_ticket_severity == 'medium':
+        #     pass
+        # elif src_ticket_severity == 'low':
+        #     new_labels.append("minor")
 
         # Current ticket types are: enhancement, defect, compilation, performance, style, scientific, task, requirement
-        new_labels.append(src_ticket_type)
+        # new_labels.append(src_ticket_type)
 
-        if src_ticket_keywords != '':
-            for keyword in src_ticket_keywords.split(','):
-                new_labels.append(keyword.strip())
+        if src_ticket_component != '':
+            for component in src_ticket_component.split(','):
+                new_labels.append(component.strip())
 
         print "new labels:", new_labels
 
@@ -186,22 +185,28 @@ def convert_issues(source, dest, dest_project_id):
             print "!!! unknown ticket status:", src_ticket_status
 
         # Minimal parameters
-        new_issue = Issues (
-            title = src_ticket_data['summary'],
-            description = trac2down.convert(fix_wiki_syntax( src_ticket_data['description']), '/issues/', False),
-            state = new_state,
-            labels = ",".join( new_labels )
+        new_issue = Issues(
+            title=src_ticket_data['summary'],
+            description=trac2down.convert(fix_wiki_syntax(src_ticket_data['description']), '/issues/', False),
+            state=new_state,
+            labels=",".join(new_labels)
         )
 
         if src_ticket_data['owner'] != '':
-            new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
+            try:
+                new_issue.assignee = dest.get_user_id(users_map[src_ticket_data['owner']])
+            except KeyError:
+                new_issue.assignee = dest.get_user_id(default_user)
         # Additional parameters for direct access
         if (method == 'direct'):
             new_issue.created_at = convert_xmlrpc_datetime(src_ticket[1])
             new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
             new_issue.project = dest_project_id
             new_issue.state = new_state
-            new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
+            try:
+                new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
+            except KeyError:
+                new_issue.author = dest.get_user_id(default_user)
             if overwrite:
                 new_issue.iid = src_ticket_id
             else:
@@ -212,7 +217,7 @@ def convert_issues(source, dest, dest_project_id):
             if milestone and milestone_map_id[milestone]:
                 new_issue.milestone = milestone_map_id[milestone]
         new_ticket = dest.create_issue(dest_project_id, new_issue)
-        new_ticket_id  = new_ticket.id
+        # new_ticket_id  = new_ticket.id
 
         changelog = source.ticket.changeLog(src_ticket_id)
         is_attachment = False
@@ -224,16 +229,19 @@ def convert_issues(source, dest, dest_project_id):
                 attachment = change
             if (change_type == "comment") and change[4] != '':
                 note = Notes(
-                    note = trac2down.convert(fix_wiki_syntax( change[4]), '/issues/', False)
+                    note=trac2down.convert(fix_wiki_syntax(change[4]), '/issues/', False)
                 )
                 binary_attachment = None
                 if (method == 'direct'):
                     note.created_at = convert_xmlrpc_datetime(change[0])
                     note.updated_at = convert_xmlrpc_datetime(change[0])
-                    note.author = dest.get_user_id(users_map[change[1]])
+                    try:
+                        note.author = dest.get_user_id(users_map[change[1]])
+                    except KeyError:
+                        note.author = dest.get_user_id(default_user)
                     if (is_attachment):
                         note.attachment = attachment[4]
-                        binary_attachment = source.ticket.getAttachment(src_ticket_id, attachment[4]).data
+                        binary_attachment = source.ticket.getAttachment(src_ticket_id, attachment[4].encode('utf8')).data
                 dest.comment_issue(dest_project_id, new_ticket, note, binary_attachment)
                 is_attachment = False
 
@@ -254,9 +262,12 @@ def convert_wiki(source, dest, dest_project_id):
             converted = trac2down.convert(page, '/wikis/')
             if method == 'direct':
                 for attachment in source.wiki.listAttachments(name):
-                    # print(attachment)
+                    print attachment
                     binary_attachment = source.wiki.getAttachment(attachment).data
-                    attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']], convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
+                    try:
+                        attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']], convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
+                    except KeyError:
+                        attachment_path = dest.create_wiki_attachment(dest_project_id, default_user, convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
                     attachment_name = attachment.split('/')[-1]
                     converted = converted.replace(r'](%s)' % attachment_name, r'](%s)' % os.path.relpath(attachment_path, '/namespace/project/wiki/page'))
             trac2down.save_file(converted, name, info['version'], info['lastModified'], info['author'], target_directory)

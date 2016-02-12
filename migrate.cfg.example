@@ -2,7 +2,7 @@
 
 [source]
 
-# URL of the XML-RPC trac endpoint 
+# URL of the XML-RPC trac endpoint
 url: http://username:password@example.com/trac/login/xmlrpc
 
 
@@ -13,6 +13,9 @@ usernames = {
     'trac1': 'git1',
     'trac2': 'git2'
     }
+
+# Fallback user to use if not present in mapping
+default_user: 'bot'
 
 # project's path
 project_name: foo/bar
