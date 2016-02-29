@@ -1,6 +1,5 @@
 from peewee import *
 
-# database = PostgresqlDatabase('gitlabhq_production', **{'host': 'localhost', 'port': 8080, 'user': 'gitlab'})
 database_proxy = Proxy()
 
 class UnknownField(object):
@@ -8,7 +7,6 @@ class UnknownField(object):
 
 class BaseModel(Model):
     class Meta:
-        # database = database
         database = database_proxy
 
 class AbuseReports(BaseModel):
