@@ -1,6 +1,6 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 '''
-Copyright © 2013 
+Copyright © 2013
     Eric van der Vlist <vdv@dyomedea.com>
     Shigeru KANEMOTO <support@switch-science.com>
 See license information at the bottom of this file
@@ -14,14 +14,20 @@ import re
 import os
 from io import open
 
+
 def indent4(m):
     return '\n        ' + m.group(2).replace('\n', '\n        ')
+
 
 def convert(text, base_path, multilines=True):
     text = re.sub('\r\n', '\n', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
     text = re.sub(r'(?sm){{{(\n?#![^\n]+)?\n(.*?)\n}}}', indent4, text)
-    
+
+    text = text.replace('[[TOC]]', '')
+    text = text.replace('[[BR]]', '\n')
+    text = text.replace('[[br]]', '\n')
+
     if multilines:
         text = re.sub(r'^\S[^\n]+([^=-_|])\n([^\s`*0-9#=->-_|])', r'\1 \2', text)
 
@@ -36,7 +42,6 @@ def convert(text, base_path, multilines=True):
     text = re.sub(r'^     * ', r'**', text)
     text = re.sub(r'^ * ', r'*', text)
     text = re.sub(r'^ \d+. ', r'1.', text)
-
 
     a = []
     is_table = False
@@ -65,13 +70,17 @@ def convert(text, base_path, multilines=True):
     text = '\n'.join(a)
     return text
 
+
 def save_file(text, name, version, date, author, directory):
+    folders = name.rsplit("/", 1)
+    if not os.path.exists("%s%s" % (directory, folders[0])):
+        os.makedirs("%s%s" % (directory, folders[0]))
     fp = open('%s%s.markdown' % (directory, name), 'w')
-    print >>fp, '<!-- Name: %s -->' % name
-    print >>fp, '<!-- Version: %d -->' % version
-    print >>fp, '<!-- Last-Modified: %s -->' % date
-    print >>fp, '<!-- Author: %s -->' % author
-    fp.write(text)
+    # print >>fp, '<!-- Name: %s -->' % name
+    # print >>fp, '<!-- Version: %d -->' % version
+    # print >>fp, '<!-- Last-Modified: %s -->' % date
+    # print >>fp, '<!-- Author: %s -->' % author
+    fp.write(unicode(text))
     fp.close()
 
 if __name__ == "__main__":
@@ -93,11 +102,11 @@ if __name__ == "__main__":
         author = row[3]
         text = row[4]
         text = convert(text, '/wikis/')
-        time=''
+        time = ''
         try:
-            time= datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
+            time = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
-            time= datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
+            time = datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
         save_file(text, name, version, time, author, '')
 
 '''
