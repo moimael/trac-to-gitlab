@@ -256,10 +256,10 @@ def convert_wiki(source, dest, dest_project_id):
         info = source.wiki.getPageInfo(name)
         if (info['author'] not in exclude_authors):
             page = source.wiki.getPage(name)
-            # print "Page %s:%s|%s" % (name, info, page)
+            print "Page %s:%s" % (name, info)
             if (name == 'WikiStart'):
                 name = 'home'
-            converted = trac2down.convert(page, '/wikis/')
+            converted = trac2down.convert(page, os.path.dirname('/wikis/%s' % name))
             if method == 'direct':
                 for attachment in source.wiki.listAttachments(name):
                     print attachment
