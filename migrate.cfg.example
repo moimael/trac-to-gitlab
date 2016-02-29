@@ -15,7 +15,7 @@ usernames = {
     }
 
 # Fallback user to use if not present in mapping
-default_user: 'bot'
+default_user: bot
 
 # project's path
 project_name: foo/bar
