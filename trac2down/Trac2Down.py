@@ -8,7 +8,6 @@ See license information at the bottom of this file
 
 
 from __future__ import division
-import sqlite3
 import datetime
 import re
 import os
@@ -93,6 +92,7 @@ if __name__ == "__main__":
             version = (select max(version) from wiki where name = w.name)
 '''
 
+    import sqlite3
     conn = sqlite3.connect('../trac.db')
     result = conn.execute(SQL)
     for row in result:
