@@ -103,7 +103,7 @@ LGLP license version 3.0 (see the [licences directory](licences)).
 History
 =======
 
- * The main program has been cloned from https://github.com/neuhalje/hack-copy-track-issues-to-gitlab
+ * The main program has been cloned from https://gitlab.dyomedea.com/vdv/trac-to-gitlab which itself has been cloned from https://github.com/neuhalje/hack-copy-track-issues-to-gitlab
  * Trac2down.py (the conversion of trac wiki markup to markdown) has been cloned from https://gist.github.com/sgk/1286682 and https://gist.github.com/tcchau/4628317
 
 Requirements
