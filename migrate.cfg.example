@@ -66,3 +66,6 @@ target-directory: /tmp/test.wiki/
 
 # Should we migrate the issues (default = yes)
 # migrate: yes
+
+# If defined, import only these issues
+#only_issues: [ 509, 561, 564, 626, 631, 792, 830]
