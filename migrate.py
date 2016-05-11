@@ -75,7 +75,9 @@ elif (method == 'direct'):
 users_map = ast.literal_eval(config.get('target', 'usernames'))
 default_user = config.get('target', 'default_user')
 must_convert_issues = config.getboolean('issues', 'migrate')
-only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
+only_issues = None
+if config.has_option('issues', 'only_issues'):
+    only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
 def convert_xmlrpc_datetime(dt):
