@@ -135,9 +135,9 @@ if __name__ == "__main__":
     print "usernames = {"
     for user in ticket_owners.union(ticket_reporters).union(ticket_message_posters):
         if user in users_map.keys():
-            print "    '%s': '%s'," % (user, users_map[user])
+            print "    u'%s': u'%s'," % (user, users_map[user])
         else:
-            print "    '%s': ''," % user
+            print "    u'%s': u''," % user
     print "    }"
 
 
