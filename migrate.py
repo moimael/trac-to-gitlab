@@ -75,6 +75,9 @@ elif (method == 'direct'):
 users_map = ast.literal_eval(config.get('target', 'usernames'))
 default_user = config.get('target', 'default_user')
 must_convert_issues = config.getboolean('issues', 'migrate')
+only_issues = None
+if config.has_option('issues', 'only_issues'):
+    only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
 def convert_xmlrpc_datetime(dt):
@@ -99,7 +102,7 @@ def get_dest_milestone_id(dest, dest_project_id,milestone_name):
     if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name,dest_project_name))
     return dest_milestone_id["id"]
 
-def convert_issues(source, dest, dest_project_id):
+def convert_issues(source, dest, dest_project_id, only_issues=None):
     if overwrite and (method == 'direct'):
         dest.clear_issues(dest_project_id)
 
@@ -126,6 +129,10 @@ def convert_issues(source, dest, dest_project_id):
 
     for src_ticket in get_all_tickets():
         src_ticket_id = src_ticket[0]
+        if only_issues and src_ticket_id not in only_issues:
+            print "SKIP unwanted ticket #%s" % src_ticket_id
+            continue
+
         src_ticket_data = src_ticket[3]
 
         src_ticket_priority = src_ticket_data['priority']
@@ -283,7 +290,7 @@ if __name__ == "__main__":
     dest_project_id = get_dest_project_id(dest, dest_project_name)
 
     if must_convert_issues:
-        convert_issues(source, dest, dest_project_id)
+        convert_issues(source, dest, dest_project_id, only_issues=only_issues)
 
     if must_convert_wiki:
         convert_wiki(source, dest, dest_project_id)
