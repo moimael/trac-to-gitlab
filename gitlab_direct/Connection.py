@@ -8,7 +8,7 @@ See license information at the bottom of this file
 
 
 from peewee import PostgresqlDatabase
-from .model85 import *
+from .model87 import *
 import os
 import shutil
 from datetime import datetime
