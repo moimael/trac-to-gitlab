@@ -139,7 +139,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         src_ticket_resolution = src_ticket_data['resolution']
         # src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
-        src_ticket_component = src_ticket_data['component']
+        src_ticket_component = src_ticket_data.get('component', '')
 
         new_labels = []
         if src_ticket_priority == 'high':
