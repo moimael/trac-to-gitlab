@@ -20,10 +20,10 @@ class Connection(object):
     Connection to the gitlab database
     """
 
-    def __init__(self, db_name, db_user, db_password, uploads_path):
+    def __init__(self, db_name, db_user, db_password, db_path, uploads_path):
         """
         """
-        db = PostgresqlDatabase(db_name, user= db_user, host="/var/opt/gitlab/postgresql/")
+        db = PostgresqlDatabase(db_name, user= db_user, host=db_path)
         database_proxy.initialize(db)
         self.uploads_path = uploads_path
 

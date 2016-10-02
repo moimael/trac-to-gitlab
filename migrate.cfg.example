@@ -46,6 +46,11 @@ db-user: gitlab
 # user that runs the migration and map it to the gitlab user in /var/opt/gitlab/postgresql/data/pg_ident.conf
 db-password:
 
+# database socket path (if method = direct)
+# Override this if not using the Gitlab builtin PostgreSQL, to specify the path
+# to the PostgreSQL control socket (e.g. /run/postgresql)
+db-path: /var/opt/gitlab/postgresql/
+
 # Path to the gitlab uploads directory (if method = direct)
 uploads: /var/opt/gitlab/gitlab-rails/uploads
 
