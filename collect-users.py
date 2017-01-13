@@ -15,6 +15,7 @@ from datetime import datetime
 from re import MULTILINE
 import xmlrpclib
 import trac2down
+import sys
 
 """
 What
@@ -92,12 +93,16 @@ def collect_users(source):
         ticket_owners.add(src_ticket_data['owner'])
         ticket_reporters.add(src_ticket_data['reporter'])
 
-        changelog = source.ticket.changeLog(src_ticket_id)
-        for change in changelog:
-            change_type = change[2]
-            if (change_type == "comment") and change[4] != '':
-                print "ticket message poster: ", change[1]
-                ticket_message_posters.add(change[1])
+        try:
+            changelog = source.ticket.changeLog(src_ticket_id)
+            for change in changelog:
+                change_type = change[2]
+                if (change_type == "comment") and change[4] != '':
+                    print "ticket message poster: ", change[1]
+                    ticket_message_posters.add(change[1])
+        except Exception as e:
+            print "unable to parse change log for ticket id ", src_ticket_id
+            print >> sys.stderr, "ticket: ", src_ticket_id, e
 
         ticket_index += 1
 
