@@ -38,6 +38,9 @@ Requirements
 
 """
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 default_config = {
     'ssl_verify': 'no',
     'migrate' : 'true',
@@ -120,7 +123,7 @@ if __name__ == "__main__":
         except:
             print "User does not exist in GitLab:", user
 
-    source = xmlrpclib.ServerProxy(trac_url)
+    source = xmlrpclib.ServerProxy(trac_url, encoding = 'UTF-8')
 
     collect_users(source)
 

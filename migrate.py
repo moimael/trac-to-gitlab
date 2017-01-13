@@ -15,6 +15,7 @@ from datetime import datetime
 from re import MULTILINE
 import xmlrpclib
 import trac2down
+import sys
 
 """
 What
@@ -36,6 +37,9 @@ Requirements
  * GitLab
 
 """
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 default_config = {
     'ssl_verify': 'no',
