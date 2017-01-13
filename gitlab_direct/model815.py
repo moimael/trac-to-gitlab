@@ -1,13 +1,14 @@
 from peewee import *
 
-database = PostgresqlDatabase('gitlabhq_production', **{'host': '/var/opt/gitlab/postgresql', 'user': 'gitlab-psql'})
+database_proxy = Proxy()
+#PostgresqlDatabase('gitlabhq_production', **{'host': '/var/opt/gitlab/postgresql', 'user': 'gitlab-psql'})
 
 class UnknownField(object):
     pass
 
 class BaseModel(Model):
     class Meta:
-        database = database
+        database = database_proxy
 
 class AbuseReports(BaseModel):
     created_at = DateTimeField(null=True)
