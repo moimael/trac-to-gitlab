@@ -125,7 +125,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
-    for ticket in source.ticket.query("max=0"):
+    for ticket in source.ticket.query("max=0&order=id"):
         get_all_tickets.ticket.get(ticket)
 
     for src_ticket in get_all_tickets():
