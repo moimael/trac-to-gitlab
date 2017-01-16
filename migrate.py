@@ -84,19 +84,25 @@ if config.has_option('issues', 'only_issues'):
     only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
+pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
+matcher_changeset = re.compile(pattern_changeset)
+
+pattern_changeset2 = r'\[changeset:([a-zA-Z0-9]+)\]'
+matcher_changeset2 = re.compile(pattern_changeset2)
+
 
 def convert_xmlrpc_datetime(dt):
     return datetime.strptime(str(dt), "%Y%m%dT%H:%M:%S")
 
 
+def format_changeset_comment(m):
+    return 'In changeset ' + m.group(1) + ':\n> ' + m.group(3).replace('\n', '\n> ')
+
+
 def fix_wiki_syntax(markup):
-    markup = re.sub(r'#!CommitTicketReference.*\n',"",markup, flags=MULTILINE)
-
-    # [changeset:"afsd38..2fs/taskninja"] or [changeset:"afsd38..2fs"]
-    markup = re.sub(r'\[changeset:"([^"/]+?)(?:/[^"]+)?"]',r"changeset \1",markup)
-
+    markup = matcher_changeset.sub(format_changeset_comment, markup)
+    markup = matcher_changeset2.sub(r'\1', markup)
     return markup
-
 
 def get_dest_project_id(dest, dest_project_name):
     dest_project = dest.project_by_name(dest_project_name)
