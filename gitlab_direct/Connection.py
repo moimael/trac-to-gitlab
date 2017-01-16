@@ -117,6 +117,7 @@ class Connection(object):
                     title = title,
                     color = '#0000FF',
                     project = dest_project_id,
+                    type = 'ProjectLabel',
                     created_at = new_issue.created_at,
                     update_at = new_issue.created_at
                 )
