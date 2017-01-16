@@ -80,7 +80,7 @@ def collect_users(source):
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
-    for ticket in source.ticket.query("max=0"):
+    for ticket in source.ticket.query("max=0&order=id"):
         get_all_tickets.ticket.get(ticket)
 
     ticket_index = 0
