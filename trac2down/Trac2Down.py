@@ -48,11 +48,13 @@ def convert(text, base_path, multilines=True):
         if not line.startswith('    '):
             line = re.sub(r'\[(https?://[^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](\1)', line)
             line = re.sub(r'\[wiki:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/wikis/', base_path), line)
+            line = re.sub(r'\[wiki:([^\s\[\]]+)\]', r'[\1](\1)', line)
             line = re.sub(r'\[source:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
             line = re.sub(r'source:([\S]+)', r'[\1](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
             line = re.sub(r'\!(([A-Z][a-z0-9]+){2,})', r'\1', line)
             line = re.sub(r'\[\[Image\(source:([^(]+)\)\]\]', r'![](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
-            line = re.sub(r'\[\[Image\(([^(]+)\)\]\]', r'![](\1)', line)
+            line = re.sub(r'\[\[Image\(wiki:([^\s\[\]]+):([^\s\[\]]+)\)\]\]', r'![\2](/uploads/migrated/\1/\2)', line)
+            line = re.sub(r'\[\[Image\(([^(]+)\)\]\]', r'![](/uploads/migrated/\1)', line)
             line = re.sub(r'\'\'\'(.*?)\'\'\'', r'*\1*', line)
             line = re.sub(r'\'\'(.*?)\'\'', r'_\1_', line)
             if line.startswith('||'):
@@ -102,12 +104,11 @@ if __name__ == "__main__":
         author = row[3]
         text = row[4]
         text = convert(text, '/wikis/')
-        time = ''
         try:
             time = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
             time = datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
-        save_file(text, name, version, time, author, '')
+        save_file(text, name, version, time, author, 'wiki/')
 
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
