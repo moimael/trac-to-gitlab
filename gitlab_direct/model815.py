@@ -1,7 +1,6 @@
 from peewee import *
 
 database_proxy = Proxy()
-#PostgresqlDatabase('gitlabhq_production', **{'host': '/var/opt/gitlab/postgresql', 'user': 'gitlab-psql'})
 
 class UnknownField(object):
     pass

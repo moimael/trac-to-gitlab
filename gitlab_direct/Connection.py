@@ -23,7 +23,7 @@ class Connection(object):
     def __init__(self, db_name, db_user, db_password, db_path, uploads_path):
         """
         """
-        db = PostgresqlDatabase(db_name, user= db_user, host=db_path)
+        db = PostgresqlDatabase(db_name, user=db_user, host=db_path)
         database_proxy.initialize(db)
         self.uploads_path = uploads_path
 
@@ -59,7 +59,7 @@ class Connection(object):
             try:
                 shutil.rmtree(directory)
             except:
-                    pass
+                pass
             Events.delete().where( (Events.project == project_id) & (Events.target_type == 'Note' ) & (Events.target == note.id) ).execute()
             note.delete_instance()
 
@@ -70,9 +70,9 @@ class Connection(object):
 
     def project_by_name(self, project_name):
         (namespace, name) = project_name.split('/')
-        print name
+        print(name)
         for project in Projects.select().join(Namespaces, on=(Projects.namespace == Namespaces.id )).where((Projects.path == name) & (Namespaces.path == namespace)):
-            print project._data
+            print(project._data)
             return project._data
         return None
 
@@ -86,7 +86,7 @@ class Connection(object):
         try:
             existing = Milestones.get((Milestones.title == new_milestone.title) & (Milestones.project == dest_project_id))
             for k in new_milestone._data:
-                if (k not in ('id', 'iid')):
+                if k not in ('id', 'iid'):
                     existing._data[k] = new_milestone._data[k]
             new_milestone = existing
         except:
@@ -96,17 +96,16 @@ class Connection(object):
         new_milestone.save()
         return new_milestone
 
-
     def create_issue(self, dest_project_id, new_issue):
         new_issue.save()
         event = Events.create(
-            action = 1,
-            author = new_issue.author,
-            created_at = new_issue.created_at,
-            project = dest_project_id,
-            target = new_issue.id,
-            target_type = 'Issue',
-            updated_at = new_issue.created_at
+            action=1,
+            author=new_issue.author,
+            created_at=new_issue.created_at,
+            project=dest_project_id,
+            target=new_issue.id,
+            target_type='Issue',
+            updated_at=new_issue.created_at
         )
         event.save()
         for title in set(new_issue.labels.split(',')):
@@ -114,25 +113,25 @@ class Connection(object):
                 label = Labels.get((Labels.title == title) & (Labels.project == dest_project_id))
             except:
                 label = Labels.create(
-                    title = title,
-                    color = '#0000FF',
-                    project = dest_project_id,
-                    type = 'ProjectLabel',
-                    created_at = new_issue.created_at,
-                    update_at = new_issue.created_at
+                    title=title,
+                    color='#0000FF',
+                    project=dest_project_id,
+                    type='ProjectLabel',
+                    created_at=new_issue.created_at,
+                    update_at=new_issue.created_at
                 )
                 label.save()
             label_link = LabelLinks.create(
-                label = label.id,
-                target = new_issue.id,
-                target_type = 'Issue',
-                created_at = new_issue.created_at,
-                update_at = new_issue.created_at
+                label=label.id,
+                target=new_issue.id,
+                target_type='Issue',
+                created_at=new_issue.created_at,
+                update_at=new_issue.created_at
             )
             label_link.save()
         return new_issue
 
-    def comment_issue(self ,project_id, ticket, note, binary_attachment):
+    def comment_issue(self, project_id, ticket, note, binary_attachment):
         note.project = project_id
         note.noteable = ticket.id
         note.noteable_type = 'Issue'
@@ -143,51 +142,52 @@ class Connection(object):
             if not os.path.exists(directory):
                 os.makedirs(directory)
             path = os.path.join(directory, note.attachment)
-            file = open(path,"wb")
-            file.write(binary_attachment)
-            file.close()
+            f = open(path, "wb")
+            f.write(binary_attachment)
+            f.close()
 
         event = Events.create(
-            action = 1,
-            author = note.author,
-            created_at = note.created_at,
-            project = project_id,
-            target = note.id,
-            target_type = 'Note',
-            updated_at = note.created_at
+            action=1,
+            author=note.author,
+            created_at=note.created_at,
+            project=project_id,
+            target=note.id,
+            target_type='Note',
+            updated_at=note.created_at
         )
         event.save()
 
     def create_wiki_attachment(self, project_id, user, last_modified, path, binary):
         note = Notes.create(
-            project = project_id,
-            note = 'Wiki attachment %s' % path,
-            user = user,
-            created_at = last_modified,
-            updated_at = last_modified,
-            attachment = path
+            project=project_id,
+            note='Wiki attachment %s' % path,
+            user=user,
+            created_at=last_modified,
+            updated_at=last_modified,
+            attachment=path
         )
         note.save()
         full_path = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id, path)
         directory = os.path.dirname(full_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        file = open(full_path,"wb")
-        file.write(binary)
-        file.close()
+        f = open(full_path, "wb")
+        f.write(binary)
+        f.close()
 
         event = Events.create(
-            action = 1,
-            author = note.author,
-            created_at = note.created_at,
-            project = project_id,
-            target = note.id,
-            target_type = 'Note',
-            updated_at = note.created_at
+            action=1,
+            author=note.author,
+            created_at=note.created_at,
+            project=project_id,
+            target=note.id,
+            target_type='Note',
+            updated_at=note.created_at
         )
         event.save()
 
         return '/files/note/%s/%s' % (note.id, path)
+
 
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.

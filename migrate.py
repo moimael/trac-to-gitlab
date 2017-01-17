@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
+
 '''
 Copyright © 2013
     Eric van der Vlist <vdv@dyomedea.com>
@@ -12,7 +13,6 @@ import os
 import ConfigParser
 import ast
 from datetime import datetime
-from re import MULTILINE
 import xmlrpclib
 import trac2down
 import sys
@@ -43,15 +43,14 @@ sys.setdefaultencoding('utf-8')
 
 default_config = {
     'ssl_verify': 'no',
-    'migrate' : 'true',
-    'overwrite' : 'true',
-    'exclude_authors' : 'trac',
-    'uploads' : ''
+    'migrate': 'true',
+    'overwrite': 'true',
+    'exclude_authors': 'trac',
+    'uploads': ''
 }
 
 config = ConfigParser.ConfigParser(default_config)
 config.read('migrate.cfg')
-
 
 trac_url = config.get('source', 'url')
 dest_project_name = config.get('target', 'project_name')
@@ -59,23 +58,23 @@ uploads_path = config.get('target', 'uploads')
 
 method = config.get('target', 'method')
 
-
-if (method == 'api'):
+if method == 'api':
     from gitlab_api import Connection, Issues, Notes, Milestones
-    print "importing api"
+
+    print("importing api")
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
     overwrite = False
-elif (method == 'direct'):
-    print "importing direct"
+elif method == 'direct':
+    print("importing direct")
     from gitlab_direct import Connection, Issues, Notes, Milestones
+
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
     db_path = config.get('target', 'db-path')
     overwrite = config.getboolean('target', 'overwrite')
-
 
 users_map = ast.literal_eval(config.get('target', 'usernames'))
 default_user = config.get('target', 'default_user')
@@ -85,8 +84,10 @@ if config.has_option('issues', 'only_issues'):
     only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
+
 def convert_xmlrpc_datetime(dt):
     return datetime.strptime(str(dt), "%Y%m%dT%H:%M:%S")
+
 
 def fix_wiki_syntax(markup):
     markup = re.sub(r'#!CommitTicketReference.*\n',"",markup, flags=MULTILINE)
@@ -99,26 +100,30 @@ def fix_wiki_syntax(markup):
 
 def get_dest_project_id(dest, dest_project_name):
     dest_project = dest.project_by_name(dest_project_name)
-    if not dest_project: raise ValueError("Project '%s' not found" % (dest_project_name))
+    if not dest_project:
+        raise ValueError("Project '%s' not found" % dest_project_name)
     return dest_project["id"]
 
-def get_dest_milestone_id(dest, dest_project_id,milestone_name):
-    dest_milestone_id = dest.milestone_by_name(dest_project_id,milestone_name )
-    if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name,dest_project_name))
+
+def get_dest_milestone_id(dest, dest_project_id, milestone_name):
+    dest_milestone_id = dest.milestone_by_name(dest_project_id, milestone_name)
+    if not dest_milestone_id:
+        raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name, dest_project_name))
     return dest_milestone_id["id"]
 
+
 def convert_issues(source, dest, dest_project_id, only_issues=None):
-    if overwrite and (method == 'direct'):
+    if overwrite and method == 'direct':
         dest.clear_issues(dest_project_id)
 
-    milestone_map_id={}
+    milestone_map_id = {}
     for milestone_name in source.ticket.milestone.getAll():
         milestone = source.ticket.milestone.get(milestone_name)
-        print milestone
+        print(milestone)
         new_milestone = Milestones(
-            description = milestone['description'],
-            title = milestone['name'],
-            state = 'active' if str(milestone['completed']) == '0'  else 'closed'
+            description=milestone['description'],
+            title=milestone['name'],
+            state='active' if str(milestone['completed']) == '0' else 'closed'
         )
         if method == 'direct':
             new_milestone.project = dest_project_id
@@ -135,7 +140,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
     for src_ticket in get_all_tickets():
         src_ticket_id = src_ticket[0]
         if only_issues and src_ticket_id not in only_issues:
-            print "SKIP unwanted ticket #%s" % src_ticket_id
+            print("SKIP unwanted ticket #%s" % src_ticket_id)
             continue
 
         src_ticket_data = src_ticket[3]
@@ -203,9 +208,9 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         elif src_ticket_status == 'reviewing' or src_ticket_status == 'testing':
             new_labels.append(src_ticket_status)
         else:
-            print "!!! unknown ticket status:", src_ticket_status
+            print("!!! unknown ticket status: %s" % src_ticket_status)
 
-        print "migrated ticket %s with labels %s" % (src_ticket_id, new_labels)
+        print("migrated ticket %s with labels %s" % (src_ticket_id, new_labels))
 
         # Minimal parameters
         new_issue = Issues(
@@ -221,7 +226,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
             except KeyError:
                 new_issue.assignee = dest.get_user_id(default_user)
         # Additional parameters for direct access
-        if (method == 'direct'):
+        if method == 'direct':
             new_issue.created_at = convert_xmlrpc_datetime(src_ticket[1])
             new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
             new_issue.project = dest_project_id
@@ -250,26 +255,28 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
                 # The attachment will be described in the next change!
                 is_attachment = True
                 attachment = change
-            if (change_type == "comment") and change[4] != '':
+            if change_type == "comment" and change[4] != '':
                 note = Notes(
                     note=trac2down.convert(fix_wiki_syntax(change[4]), '/issues/', False)
                 )
                 binary_attachment = None
-                if (method == 'direct'):
+                if method == 'direct':
                     note.created_at = convert_xmlrpc_datetime(change[0])
                     note.updated_at = convert_xmlrpc_datetime(change[0])
                     try:
                         note.author = dest.get_user_id(users_map[change[1]])
                     except KeyError:
                         note.author = dest.get_user_id(default_user)
-                    if (is_attachment):
+                    if is_attachment:
                         note.attachment = attachment[4]
-                        binary_attachment = source.ticket.getAttachment(src_ticket_id, attachment[4].encode('utf8')).data
+                        binary_attachment = source.ticket.getAttachment(src_ticket_id,
+                                                                        attachment[4].encode('utf8')).data
                 dest.comment_issue(dest_project_id, new_ticket, note, binary_attachment)
                 is_attachment = False
 
+
 def convert_wiki(source, dest, dest_project_id):
-    if overwrite and (method == 'direct'):
+    if overwrite and method == 'direct':
         dest.clear_wiki_attachments(dest_project_id)
 
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
@@ -277,28 +284,33 @@ def convert_wiki(source, dest, dest_project_id):
     server = xmlrpclib.MultiCall(source)
     for name in source.wiki.getAllPages():
         info = source.wiki.getPageInfo(name)
-        if (info['author'] not in exclude_authors):
+        if info['author'] not in exclude_authors:
             page = source.wiki.getPage(name)
-            print "Page %s:%s" % (name, info)
-            if (name == 'WikiStart'):
+            print("Page %s:%s" % (name, info))
+            if name == 'WikiStart':
                 name = 'home'
             converted = trac2down.convert(page, os.path.dirname('/wikis/%s' % name))
             if method == 'direct':
                 for attachment in source.wiki.listAttachments(name):
-                    print attachment
+                    print(attachment)
                     binary_attachment = source.wiki.getAttachment(attachment).data
                     try:
-                        attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']], convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
+                        attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']],
+                                                                      convert_xmlrpc_datetime(info['lastModified']),
+                                                                      attachment, binary_attachment)
                     except KeyError:
-                        attachment_path = dest.create_wiki_attachment(dest_project_id, default_user, convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
+                        attachment_path = dest.create_wiki_attachment(dest_project_id, default_user,
+                                                                      convert_xmlrpc_datetime(info['lastModified']),
+                                                                      attachment, binary_attachment)
                     attachment_name = attachment.split('/')[-1]
-                    converted = converted.replace(r'](%s)' % attachment_name, r'](%s)' % os.path.relpath(attachment_path, '/namespace/project/wiki/page'))
+                    converted = converted.replace(r'](%s)' % attachment_name,
+                                                  r'](%s)' % os.path.relpath(attachment_path, '/namespace/project/wiki/page'))
             trac2down.save_file(converted, name, info['version'], info['lastModified'], info['author'], target_directory)
 
 
 if __name__ == "__main__":
     if method == 'api':
-        dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
+        dest = Connection(gitlab_url, gitlab_access_token, dest_ssl_verify)
     elif method == 'direct':
         dest = Connection(db_name, db_user, db_password, db_path, uploads_path)
 
@@ -310,7 +322,6 @@ if __name__ == "__main__":
 
     if must_convert_wiki:
         convert_wiki(source, dest, dest_project_id)
-
 
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.

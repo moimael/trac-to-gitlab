@@ -6,7 +6,6 @@ Copyright © 2013
 See license information at the bottom of this file
 '''
 
-
 from __future__ import division
 import datetime
 import re
@@ -84,6 +83,7 @@ def save_file(text, name, version, date, author, directory):
     fp.write(unicode(text))
     fp.close()
 
+
 if __name__ == "__main__":
     SQL = '''
     select
@@ -95,6 +95,7 @@ if __name__ == "__main__":
 '''
 
     import sqlite3
+
     conn = sqlite3.connect('../trac.db')
     result = conn.execute(SQL)
     for row in result:
@@ -107,7 +108,7 @@ if __name__ == "__main__":
         try:
             time = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
-            time = datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
+            time = datetime.datetime.fromtimestamp(time / 1000000).strftime('%Y/%m/%d %H:%M:%S')
         save_file(text, name, version, time, author, 'wiki/')
 
 '''
