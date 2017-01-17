@@ -14,14 +14,10 @@ import os
 from io import open
 
 
-def indent4(m):
-    return '\n        ' + m.group(2).replace('\n', '\n        ')
-
-
 def convert(text, base_path, multilines=True):
     text = re.sub('\r\n', '\n', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
-    text = re.sub(r'(?sm){{{(\n?#![^\n]+)?\n(.*?)\n}}}', indent4, text)
+    text = re.sub(r'(?sm){{{(\n?#![^\n]+)?\n(.*?)\n}}}', r'```\n\2\n```', text)
 
     text = text.replace('[[TOC]]', '')
     text = text.replace('[[BR]]', '\n')
