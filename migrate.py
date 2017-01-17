@@ -261,7 +261,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
                 # The attachment will be described in the next change!
                 is_attachment = True
                 attachment = change
-            if change_type == "comment" and change[4] != '':
+            if change_type == "comment" and (change[4] != '' or is_attachment):
                 note = Notes(
                     note=trac2down.convert(fix_wiki_syntax(change[4]), '/issues/', False)
                 )
@@ -275,16 +275,15 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
                         note.author = dest.get_user_id(default_user)
                     if is_attachment:
                         note.attachment = attachment[4]
+                        print("migrating attachment for ticket id %s: %s" % (src_ticket_id, note.attachment))
                         binary_attachment = source.ticket.getAttachment(src_ticket_id,
                                                                         attachment[4].encode('utf8')).data
+                        attachment = None
                 dest.comment_issue(dest_project_id, new_ticket, note, binary_attachment)
                 is_attachment = False
 
 
-def convert_wiki(source, dest, dest_project_id):
-    if overwrite and method == 'direct':
-        dest.clear_wiki_attachments(dest_project_id)
-
+def convert_wiki(source, dest):
     exclude_authors = [a.strip() for a in config.get('wiki', 'exclude_authors').split(',')]
     target_directory = config.get('wiki', 'target-directory')
     server = xmlrpclib.MultiCall(source)
@@ -297,20 +296,23 @@ def convert_wiki(source, dest, dest_project_id):
                 name = 'home'
             converted = trac2down.convert(page, os.path.dirname('/wikis/%s' % name))
             if method == 'direct':
-                for attachment in source.wiki.listAttachments(name):
-                    print(attachment)
-                    binary_attachment = source.wiki.getAttachment(attachment).data
-                    try:
-                        attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']],
-                                                                      convert_xmlrpc_datetime(info['lastModified']),
-                                                                      attachment, binary_attachment)
-                    except KeyError:
-                        attachment_path = dest.create_wiki_attachment(dest_project_id, default_user,
-                                                                      convert_xmlrpc_datetime(info['lastModified']),
-                                                                      attachment, binary_attachment)
-                    attachment_name = attachment.split('/')[-1]
-                    converted = converted.replace(r'](%s)' % attachment_name,
-                                                  r'](%s)' % os.path.relpath(attachment_path, '/namespace/project/wiki/page'))
+                files_not_linked_to = []
+                for attachment_filename in source.wiki.listAttachments(name):
+                    print(attachment_filename)
+                    binary_attachment = source.wiki.getAttachment(attachment_filename).data
+                    attachment_name = attachment_filename.split('/')[-1]
+                    dest.save_wiki_attachment(attachment_name, binary_attachment)
+                    converted = converted.replace(r'migrated/%s)' % attachment_filename,
+                                                  r'migrated/%s)' % attachment_name)
+                    if '%s)' % attachment_name not in converted:
+                        files_not_linked_to.append(attachment_name)
+
+                if len(files_not_linked_to) > 0:
+                    converted += '\n\n'
+                    converted += '##### Attached files:\n'
+                    for f in files_not_linked_to:
+                        converted += '- [%s](/uploads/migrated/%s)\n' % (f, f)
+
             trac2down.save_file(converted, name, info['version'], info['lastModified'], info['author'], target_directory)
 
 
@@ -318,7 +320,7 @@ if __name__ == "__main__":
     if method == 'api':
         dest = Connection(gitlab_url, gitlab_access_token, dest_ssl_verify)
     elif method == 'direct':
-        dest = Connection(db_name, db_user, db_password, db_path, uploads_path)
+        dest = Connection(db_name, db_user, db_password, db_path, uploads_path, dest_project_name)
 
     source = xmlrpclib.ServerProxy(trac_url)
     dest_project_id = get_dest_project_id(dest, dest_project_name)
@@ -327,7 +329,7 @@ if __name__ == "__main__":
         convert_issues(source, dest, dest_project_id, only_issues=only_issues)
 
     if must_convert_wiki:
-        convert_wiki(source, dest, dest_project_id)
+        convert_wiki(source, dest)
 
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.

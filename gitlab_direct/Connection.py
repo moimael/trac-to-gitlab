@@ -20,12 +20,13 @@ class Connection(object):
     Connection to the gitlab database
     """
 
-    def __init__(self, db_name, db_user, db_password, db_path, uploads_path):
+    def __init__(self, db_name, db_user, db_password, db_path, uploads_path, project_name):
         """
         """
         db = PostgresqlDatabase(db_name, user=db_user, host=db_path)
         database_proxy.initialize(db)
         self.uploads_path = uploads_path
+        self.project_name = project_name
 
     def clear_issues(self, project_id):
 
@@ -52,16 +53,6 @@ class Connection(object):
             issue.delete_instance()
 
         Milestones.delete().where( Milestones.project == project_id ).execute()
-
-    def clear_wiki_attachments(self, project_id):
-        for note in Notes.select().where( (Notes.project == project_id) & (Notes.noteable_type >> None) & (Notes.note % 'Wiki attachment %')):
-            directory = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id)
-            try:
-                shutil.rmtree(directory)
-            except:
-                pass
-            Events.delete().where( (Events.project == project_id) & (Events.target_type == 'Note' ) & (Events.target == note.id) ).execute()
-            note.delete_instance()
 
     def milestone_by_name(self, project_id, milestone_name):
         for milestone in Milestones.select().where((Milestones.title == milestone_name) & (Milestones.project == project_id)):
@@ -157,36 +148,16 @@ class Connection(object):
         )
         event.save()
 
-    def create_wiki_attachment(self, project_id, user, last_modified, path, binary):
-        note = Notes.create(
-            project=project_id,
-            note='Wiki attachment %s' % path,
-            user=user,
-            created_at=last_modified,
-            updated_at=last_modified,
-            attachment=path
-        )
-        note.save()
-        full_path = os.path.join(self.uploads_path, 'note/attachment/%s' % note.id, path)
+    def save_wiki_attachment(self, path, binary):
+        full_path = os.path.join(self.uploads_path, self.project_name, 'migrated', path)
+        if os.path.isfile(full_path):
+            raise Exception("file already exists: %s" % full_path)
         directory = os.path.dirname(full_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
         f = open(full_path, "wb")
         f.write(binary)
         f.close()
-
-        event = Events.create(
-            action=1,
-            author=note.author,
-            created_at=note.created_at,
-            project=project_id,
-            target=note.id,
-            target_type='Note',
-            updated_at=note.created_at
-        )
-        event.save()
-
-        return '/files/note/%s/%s' % (note.id, path)
 
 
 '''

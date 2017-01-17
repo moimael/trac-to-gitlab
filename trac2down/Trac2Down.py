@@ -48,8 +48,8 @@ def convert(text, base_path, multilines=True):
             line = re.sub(r'source:([\S]+)', r'[\1](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
             line = re.sub(r'\!(([A-Z][a-z0-9]+){2,})', r'\1', line)
             line = re.sub(r'\[\[Image\(source:([^(]+)\)\]\]', r'![](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
-            line = re.sub(r'\[\[Image\(wiki:([^\s\[\]]+):([^\s\[\]]+)\)\]\]', r'![\2](/uploads/migrated/\1/\2)', line)
-            line = re.sub(r'\[\[Image\(([^(]+)\)\]\]', r'![](/uploads/migrated/\1)', line)
+            line = re.sub(r'\[\[Image\(wiki:([^\s\[\]]+):([^\s\[\]]+)\)\]\]', r'![\2](/uploads/migrated/\2)', line)
+            line = re.sub(r'\[\[Image\(([^(]+)\)\]\]', r'![\1](/uploads/migrated/\1)', line)
             line = re.sub(r'\'\'\'(.*?)\'\'\'', r'*\1*', line)
             line = re.sub(r'\'\'(.*?)\'\'', r'_\1_', line)
             if line.startswith('||'):
@@ -71,7 +71,7 @@ def save_file(text, name, version, date, author, directory):
     folders = name.rsplit("/", 1)
     if not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
-    fp = open('%s%s.markdown' % (directory, name), 'w')
+    fp = open('%s%s.md' % (directory, name), 'w')
     # print >>fp, '<!-- Name: %s -->' % name
     # print >>fp, '<!-- Version: %d -->' % version
     # print >>fp, '<!-- Last-Modified: %s -->' % date

@@ -112,7 +112,7 @@ if __name__ == "__main__":
     if method == 'api':
         dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     elif method == 'direct':
-        dest = Connection(db_name, db_user, db_password, uploads_path)
+        dest = Connection(db_name, db_user, db_password, uploads_path, dest_project_name)
                         
     for user in set(users_map.values()):
         try:
