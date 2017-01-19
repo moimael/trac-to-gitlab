@@ -122,7 +122,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         milestone = source.ticket.milestone.get(milestone_name)
         print(milestone)
         new_milestone = Milestones(
-            description = milestone['description'],
+            description = trac2down.convert(fix_wiki_syntax(milestone['description']), '/milestones/', False),
             title = milestone['name'],
             state = 'active' if str(milestone['completed']) == '0'  else 'closed'
         )
