@@ -56,7 +56,7 @@ Manual updates must then be applied, see for instance the [manual updates for 6.
 Configuration
 =============
 
-The configuration must be located in a file named "micrate.cfg"
+The configuration must be located in a file named "migrate.cfg"
 
 Source
 -------
