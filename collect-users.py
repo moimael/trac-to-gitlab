@@ -33,9 +33,6 @@ Requirements
 
 """
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 default_config = {
     'ssl_verify': 'no',
     'migrate' : 'true',
