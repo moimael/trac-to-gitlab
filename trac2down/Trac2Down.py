@@ -6,7 +6,6 @@ Copyright © 2013
 See license information at the bottom of this file
 '''
 
-
 from __future__ import division
 import datetime
 import re
@@ -14,14 +13,10 @@ import os
 from io import open
 
 
-def indent4(m):
-    return '\n        ' + m.group(2).replace('\n', '\n        ')
-
-
 def convert(text, base_path, multilines=True):
     text = re.sub('\r\n', '\n', text)
     text = re.sub(r'{{{(.*?)}}}', r'`\1`', text)
-    text = re.sub(r'(?sm){{{(\n?#![^\n]+)?\n(.*?)\n}}}', indent4, text)
+    text = re.sub(r'(?sm){{{(\n?#![^\n]+)?\n(.*?)\n}}}', r'```\n\2\n```', text)
 
     text = text.replace('[[TOC]]', '')
     text = text.replace('[[BR]]', '\n')
@@ -48,11 +43,13 @@ def convert(text, base_path, multilines=True):
         if not line.startswith('    '):
             line = re.sub(r'\[(https?://[^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](\1)', line)
             line = re.sub(r'\[wiki:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/wikis/', base_path), line)
+            line = re.sub(r'\[wiki:([^\s\[\]]+)\]', r'[\1](\1)', line)
             line = re.sub(r'\[source:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
             line = re.sub(r'source:([\S]+)', r'[\1](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
             line = re.sub(r'\!(([A-Z][a-z0-9]+){2,})', r'\1', line)
             line = re.sub(r'\[\[Image\(source:([^(]+)\)\]\]', r'![](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
-            line = re.sub(r'\[\[Image\(([^(]+)\)\]\]', r'![](\1)', line)
+            line = re.sub(r'\[\[Image\(wiki:([^\s\[\]]+):([^\s\[\]]+)\)\]\]', r'![\2](/uploads/migrated/\2)', line)
+            line = re.sub(r'\[\[Image\(([^(]+)\)\]\]', r'![\1](/uploads/migrated/\1)', line)
             line = re.sub(r'\'\'\'(.*?)\'\'\'', r'*\1*', line)
             line = re.sub(r'\'\'(.*?)\'\'', r'_\1_', line)
             if line.startswith('||'):
@@ -74,13 +71,14 @@ def save_file(text, name, version, date, author, directory):
     folders = name.rsplit("/", 1)
     if not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
-    fp = open('%s%s.markdown' % (directory, name), 'w')
+    fp = open('%s%s.md' % (directory, name), 'w')
     # print >>fp, '<!-- Name: %s -->' % name
     # print >>fp, '<!-- Version: %d -->' % version
     # print >>fp, '<!-- Last-Modified: %s -->' % date
     # print >>fp, '<!-- Author: %s -->' % author
     fp.write(unicode(text))
     fp.close()
+
 
 if __name__ == "__main__":
     SQL = '''
@@ -93,6 +91,7 @@ if __name__ == "__main__":
 '''
 
     import sqlite3
+
     conn = sqlite3.connect('../trac.db')
     result = conn.execute(SQL)
     for row in result:
@@ -102,12 +101,11 @@ if __name__ == "__main__":
         author = row[3]
         text = row[4]
         text = convert(text, '/wikis/')
-        time = ''
         try:
             time = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
-            time = datetime.datetime.fromtimestamp(time/1000000).strftime('%Y/%m/%d %H:%M:%S')
-        save_file(text, name, version, time, author, '')
+            time = datetime.datetime.fromtimestamp(time / 1000000).strftime('%Y/%m/%d %H:%M:%S')
+        save_file(text, name, version, time, author, 'wiki/')
 
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
