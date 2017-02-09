@@ -104,12 +104,12 @@ class Connection(object):
                 label = Labels.get((Labels.title == title) & (Labels.project == dest_project_id))
             except:
                 label = Labels.create(
-                    title=title,
-                    color='#0000FF',
-                    project=dest_project_id,
-                    type='ProjectLabel',
-                    created_at=new_issue.created_at,
-                    update_at=new_issue.created_at
+                    title = title,
+                    color = '#0000FF',
+                    project = dest_project_id,
+                    type = 'ProjectLabel',
+                    created_at = new_issue.created_at,
+                    update_at = new_issue.created_at
                 )
                 label.save()
             label_link = LabelLinks.create(
