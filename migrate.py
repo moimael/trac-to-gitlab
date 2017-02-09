@@ -58,13 +58,13 @@ method = config.get('target', 'method')
 
 if (method == 'api'):
     from gitlab_api import Connection, Issues, Notes, Milestones
-    print "importing api"
+    print("importing api")
     gitlab_url = config.get('target', 'url')
     gitlab_access_token = config.get('target', 'access_token')
     dest_ssl_verify = config.getboolean('target', 'ssl_verify')
     overwrite = False
 elif (method == 'direct'):
-    print "importing direct"
+    print("importing direct")
     from gitlab_direct import Connection, Issues, Notes, Milestones
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
@@ -95,12 +95,14 @@ def fix_wiki_syntax(markup):
 
 def get_dest_project_id(dest, dest_project_name):
     dest_project = dest.project_by_name(dest_project_name)
-    if not dest_project: raise ValueError("Project '%s' not found" % (dest_project_name))
+    if not dest_project:
+        raise ValueError("Project '%s' not found" % dest_project_name)
     return dest_project["id"]
 
 def get_dest_milestone_id(dest, dest_project_id,milestone_name):
     dest_milestone_id = dest.milestone_by_name(dest_project_id,milestone_name )
-    if not dest_milestone_id: raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name,dest_project_name))
+    if not dest_milestone_id:
+        raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name, dest_project_name))
     return dest_milestone_id["id"]
 
 def convert_issues(source, dest, dest_project_id, only_issues=None):
@@ -110,7 +112,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
     milestone_map_id={}
     for milestone_name in source.ticket.milestone.getAll():
         milestone = source.ticket.milestone.get(milestone_name)
-        print milestone
+        print(milestone)
         new_milestone = Milestones(
             description = milestone['description'],
             title = milestone['name'],
@@ -131,7 +133,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
     for src_ticket in get_all_tickets():
         src_ticket_id = src_ticket[0]
         if only_issues and src_ticket_id not in only_issues:
-            print "SKIP unwanted ticket #%s" % src_ticket_id
+            print("SKIP unwanted ticket #%s" % src_ticket_id)
             continue
 
         src_ticket_data = src_ticket[3]
@@ -178,7 +180,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
             for component in src_ticket_component.split(','):
                 new_labels.append(component.strip())
 
-        print "new labels:", new_labels
+        print("new labels: %s" % new_labels)
 
         new_state = ''
         if src_ticket_status == 'new':
@@ -190,7 +192,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         elif src_ticket_status == 'closed':
             new_state = 'closed'
         else:
-            print "!!! unknown ticket status:", src_ticket_status
+            print("!!! unknown ticket status: %s" % src_ticket_status)
 
         # Minimal parameters
         new_issue = Issues(
@@ -264,13 +266,13 @@ def convert_wiki(source, dest, dest_project_id):
         info = source.wiki.getPageInfo(name)
         if (info['author'] not in exclude_authors):
             page = source.wiki.getPage(name)
-            print "Page %s:%s" % (name, info)
+            print("Page %s:%s" % (name, info))
             if (name == 'WikiStart'):
                 name = 'home'
             converted = trac2down.convert(page, os.path.dirname('/wikis/%s' % name))
             if method == 'direct':
                 for attachment in source.wiki.listAttachments(name):
-                    print attachment
+                    print(attachment)
                     binary_attachment = source.wiki.getAttachment(attachment).data
                     try:
                         attachment_path = dest.create_wiki_attachment(dest_project_id, users_map[info['author']], convert_xmlrpc_datetime(info['lastModified']), attachment, binary_attachment)
