@@ -70,9 +70,9 @@ class Connection(object):
 
     def project_by_name(self, project_name):
         (namespace, name) = project_name.split('/')
-        print name
+        print(name)
         for project in Projects.select().join(Namespaces, on=(Projects.namespace == Namespaces.id )).where((Projects.path == name) & (Namespaces.path == namespace)):
-            print project._data
+            print(project._data)
             return project._data
         return None
 

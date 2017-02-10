@@ -76,7 +76,7 @@ def collect_users(source):
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
-    for ticket in source.ticket.query("max=0"):
+    for ticket in source.ticket.query("max=0&order=id"):
         get_all_tickets.ticket.get(ticket)
 
     ticket_index = 0
@@ -85,10 +85,10 @@ def collect_users(source):
         src_ticket_id = src_ticket[0]
         src_ticket_data = src_ticket[3]
 
-        print "ticket id: ", src_ticket_id
-        print "ticket index:", ticket_index
-        print "owner: ", src_ticket_data['owner']
-        print "reporter: ", src_ticket_data['reporter']
+        print("ticket id: %s" % src_ticket_id)
+        print("ticket index: %s" % ticket_index)
+        print("owner: %s" % src_ticket_data['owner'])
+        print("reporter: %s" % src_ticket_data['reporter'])
         ticket_owners.add(src_ticket_data['owner'])
         ticket_reporters.add(src_ticket_data['reporter'])
 
@@ -113,33 +113,32 @@ if __name__ == "__main__":
         try:
             gitlab_user = dest.get_user_id(user)
         except:
-            print "User does not exist in GitLab:", user
+            print("User does not exist in GitLab: %s" % user)
 
     source = xmlrpclib.ServerProxy(trac_url)
 
     collect_users(source)
 
-    print "--------"
-    print "Ticket owners:"
-    print ticket_owners
-    print "Ticket reporters:"
-    print ticket_reporters
-    print "Ticket message posters:"
-    print ticket_message_posters
+    print("--------")
+    print("Ticket owners:")
+    print(ticket_owners)
+    print("Ticket reporters:")
+    print(ticket_reporters)
+    print("Ticket message posters:")
+    print(ticket_message_posters)
 
-    print
-    print "--------"
-    print
-    print "User mappings (copy-paste it into the configuration file and fill in the missing values):"
-    print
-    print "usernames = {"
+    print("")
+    print("--------")
+    print("")
+    print("User mappings (copy-paste it into the configuration file and fill in the missing values):")
+    print("")
+    print("usernames = {")
     for user in ticket_owners.union(ticket_reporters).union(ticket_message_posters):
         if user in users_map.keys():
-            print "    u'%s': u'%s'," % (user, users_map[user])
+            print("    u'%s': u'%s'," % (user, users_map[user]))
         else:
-            print "    u'%s': u''," % user
-    print "    }"
-
+            print("    u'%s': u''," % user)
+    print("    }")
 
 '''
 This file is part of <https://gitlab.dyomedea.com/vdv/trac-to-gitlab>.
