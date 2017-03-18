@@ -1,7 +1,7 @@
 What
 =====
 
- This script migrates milestones, issues and wiki pages from trac to gitlab.
+ This script migrates milestones, issues and wiki pages from trac to GitLab.
 
 Features
 --------
@@ -16,7 +16,7 @@ Features
 How
 ====
 
-Migrating a trac project to GitLab is a relatively complex process involving fours steps:
+Migrating a trac project to GitLab is a relatively complex process involving four steps:
 
  * Create a new project
  * Migrate the repository (can just be cloning a git repository if the trac project is already using git or could involve converting from subversion using git-svn)
@@ -98,7 +98,7 @@ Issues
 Licenses
 ========
 
-LGLP license version 3.0 (see the [licences directory](licences)).
+LGPL license version 3.0 (see the [licences directory](licences)).
 
 History
 =======
