@@ -1,2 +1,2 @@
 from .Connection import Connection
-from .model816 import Issues, Notes, Milestones
+from .model817 import Issues, Notes, Milestones
