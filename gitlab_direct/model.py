@@ -1,2 +1,10 @@
 # proxy class to import current scheme
-from .model817 import *
+
+import os
+import importlib
+try:
+    version = os.environ['MODEL_VERSION']
+except KeyError:
+    version = '817'
+
+exec "from .model%s import *" % version
