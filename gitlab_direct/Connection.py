@@ -1,6 +1,6 @@
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 '''
-Copyright © 2013 - 2014
+Copyright © 2013 - 2017
     Eric van der Vlist <vdv@dyomedea.com>
     Jens Neuhalfen <http://www.neuhalfen.name/>
 See license information at the bottom of this file
@@ -8,7 +8,7 @@ See license information at the bottom of this file
 
 
 from peewee import PostgresqlDatabase
-from .model816 import *
+from .model import *
 import os
 import shutil
 from datetime import datetime
