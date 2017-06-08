@@ -70,6 +70,7 @@ elif (method == 'direct'):
     db_name = config.get('target', 'db-name')
     db_password = config.get('target', 'db-password')
     db_user = config.get('target', 'db-user')
+    db_path = config.get('target', 'db-path')
 
 
 def collect_users(source):
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     if method == 'api':
         dest = Connection(gitlab_url,gitlab_access_token,dest_ssl_verify)
     elif method == 'direct':
-        dest = Connection(db_name, db_user, db_password, uploads_path)
+        dest = Connection(db_name, db_user, db_password, db_path, uploads_path)
                         
     for user in set(users_map.values()):
         try:
