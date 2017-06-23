@@ -152,8 +152,9 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
             continue
 
         src_ticket_data = src_ticket[3]
-
-        src_ticket_priority = src_ticket_data['priority']
+        src_ticket_priority = 'normal'
+        if 'priority' in src_ticket_data:
+            src_ticket_priority = src_ticket_data['priority']
         src_ticket_resolution = src_ticket_data['resolution']
         # src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
