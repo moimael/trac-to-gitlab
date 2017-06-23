@@ -110,6 +110,8 @@ class Connection(object):
         )
         event.save()
         for title in set(new_issue.labels.split(',')):
+            if (title == ''):
+                continue
             try:
                 label = Labels.get((Labels.title == title) & (Labels.project == dest_project_id))
             except:
