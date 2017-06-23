@@ -84,6 +84,7 @@ if config.has_option('issues', 'blacklist_issues'):
     blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 migrate_keywords = config.getboolean('issues', 'migrate_keywords')
+add_component_as_label = config.getboolean('issues', 'add_component_as_label')
 component_filter = None
 if config.has_option('issues', 'component_filter'):
     component_filter = ast.literal_eval(config.get('issues', 'component_filter'))
@@ -201,9 +202,10 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         # Current ticket types are: enhancement, defect, compilation, performance, style, scientific, task, requirement
         # new_labels.append(src_ticket_type)
 
-        if src_ticket_component != '':
+        if add_component_as_label and src_ticket_component != '':
             for component in src_ticket_component.split(','):
                 new_labels.append(component.strip())
+
         if add_label:
             new_labels.append(add_label)
 
