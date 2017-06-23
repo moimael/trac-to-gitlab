@@ -84,6 +84,7 @@ if config.has_option('issues', 'blacklist_issues'):
     blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 migrate_keywords = config.getboolean('issues', 'migrate_keywords')
+migrate_milestones = config.getboolean('issues', 'migrate_milestones')
 add_component_as_label = config.getboolean('issues', 'add_component_as_label')
 component_filter = None
 if config.has_option('issues', 'component_filter'):
@@ -129,20 +130,22 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         dest.clear_issues(dest_project_id)
 
     milestone_map_id={}
-    for milestone_name in source.ticket.milestone.getAll():
-        milestone = source.ticket.milestone.get(milestone_name)
-        print(milestone)
-        new_milestone = Milestones(
-            description = trac2down.convert(fix_wiki_syntax(milestone['description']), '/milestones/', False),
-            title = milestone['name'],
-            state = 'active' if str(milestone['completed']) == '0'  else 'closed'
-        )
-        if method == 'direct':
-            new_milestone.project = dest_project_id
-        if milestone['due']:
-            new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
-        new_milestone = dest.create_milestone(dest_project_id, new_milestone)
-        milestone_map_id[milestone_name] = new_milestone.id
+
+    if migrate_milestones:
+        for milestone_name in source.ticket.milestone.getAll():
+            milestone = source.ticket.milestone.get(milestone_name)
+            print(milestone)
+            new_milestone = Milestones(
+                description = trac2down.convert(fix_wiki_syntax(milestone['description']), '/milestones/', False),
+                title = milestone['name'],
+                state = 'active' if str(milestone['completed']) == '0'  else 'closed'
+            )
+            if method == 'direct':
+                new_milestone.project = dest_project_id
+            if milestone['due']:
+                new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
+            new_milestone = dest.create_milestone(dest_project_id, new_milestone)
+            milestone_map_id[milestone_name] = new_milestone.id
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
