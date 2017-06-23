@@ -84,6 +84,9 @@ if config.has_option('issues', 'blacklist_issues'):
     blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 migrate_keywords = config.getboolean('issues', 'migrate_keywords')
+component_filter = None
+if config.has_option('issues', 'component_filter'):
+    component_filter = ast.literal_eval(config.get('issues', 'component_filter'))
 add_label = None
 if config.has_option('issues', 'add_label'):
             add_label = config.get('issues', 'add_label')
@@ -163,6 +166,8 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         src_ticket_status = src_ticket_data['status']
         src_ticket_component = src_ticket_data.get('component', '')
         src_ticket_keywords = src_ticket_data['keywords']
+        if (component_filter and src_ticket_component not in component_filter):
+            continue
 
         new_labels = []
         if src_ticket_priority == 'high':
