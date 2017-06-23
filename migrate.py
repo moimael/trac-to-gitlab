@@ -79,6 +79,9 @@ must_convert_issues = config.getboolean('issues', 'migrate')
 only_issues = None
 if config.has_option('issues', 'only_issues'):
     only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
+blacklist_issues = None
+if config.has_option('issues', 'blacklist_issues'):
+    blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 
 pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
@@ -113,7 +116,7 @@ def get_dest_milestone_id(dest, dest_project_id,milestone_name):
         raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name, dest_project_name))
     return dest_milestone_id["id"]
 
-def convert_issues(source, dest, dest_project_id, only_issues=None):
+def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_issues=None):
     if overwrite and (method == 'direct'):
         dest.clear_issues(dest_project_id)
 
@@ -142,6 +145,9 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         src_ticket_id = src_ticket[0]
         if only_issues and src_ticket_id not in only_issues:
             print("SKIP unwanted ticket #%s" % src_ticket_id)
+            continue
+        if blacklist_issues and src_ticket_id in blacklist_issues:
+            print("SKIP blacklisted ticket #%s" % src_ticket_id)
             continue
 
         src_ticket_data = src_ticket[3]
@@ -301,7 +307,7 @@ if __name__ == "__main__":
     dest_project_id = get_dest_project_id(dest, dest_project_name)
 
     if must_convert_issues:
-        convert_issues(source, dest, dest_project_id, only_issues=only_issues)
+        convert_issues(source, dest, dest_project_id, only_issues=only_issues, blacklist_issues=blacklist_issues)
 
     if must_convert_wiki:
         convert_wiki(source, dest, dest_project_id)
