@@ -83,6 +83,7 @@ blacklist_issues = None
 if config.has_option('issues', 'blacklist_issues'):
     blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
+migrate_keywords = config.getboolean('issues', 'migrate_keywords')
 
 pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
 matcher_changeset = re.compile(pattern_changeset)
@@ -157,6 +158,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         # src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
         src_ticket_component = src_ticket_data.get('component', '')
+        src_ticket_keywords = src_ticket_data['keywords']
 
         new_labels = []
         if src_ticket_priority == 'high':
@@ -193,6 +195,9 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         if src_ticket_component != '':
             for component in src_ticket_component.split(','):
                 new_labels.append(component.strip())
+        if src_ticket_keywords != '' and migrate_keywords:
+            for keyword in src_ticket_keywords.split(','):
+                new_labels.append(keyword.strip())
 
         print("new labels: %s" % new_labels)
 
