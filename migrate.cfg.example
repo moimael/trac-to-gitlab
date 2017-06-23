@@ -73,4 +73,27 @@ target-directory: /tmp/test.wiki/
 # migrate: yes
 
 # If defined, import only these issues
-#only_issues: [ 509, 561, 564, 626, 631, 792, 830]
+# only_issues: [ 509, 561, 564, 626, 631, 792, 830]
+
+# If defined, do not import these issues
+# blacklist_issues: [ 268, 843 ]
+
+# Add a label to all migrated issues
+# add_label: Websites
+
+# Trac component to migrate issues from
+component_filter: [
+    u'Vorbis Core - documentation',
+    u'Vorbis Core - libvorbis',
+    u'Vorbis Core - libvorbisenc',
+    u'Vorbis Core - libvorbisfile'
+    ]
+
+# Migrate keywords
+migrate_keywords: no
+
+# Migrate milestones
+migrate_milestones: no
+
+# Add the trac component as label to the Gitlab issue
+add_component_as_label: no
