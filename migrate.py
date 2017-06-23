@@ -84,6 +84,9 @@ if config.has_option('issues', 'blacklist_issues'):
     blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
 migrate_keywords = config.getboolean('issues', 'migrate_keywords')
+add_label = None
+if config.has_option('issues', 'add_label'):
+            add_label = config.get('issues', 'add_label')
 
 pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
 matcher_changeset = re.compile(pattern_changeset)
@@ -196,6 +199,9 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         if src_ticket_component != '':
             for component in src_ticket_component.split(','):
                 new_labels.append(component.strip())
+        if add_label:
+            new_labels.append(add_label)
+
         if src_ticket_keywords != '' and migrate_keywords:
             for keyword in src_ticket_keywords.split(','):
                 new_labels.append(keyword.strip())
