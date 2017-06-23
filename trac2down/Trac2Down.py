@@ -26,12 +26,12 @@ def convert(text, base_path, multilines=True):
     if multilines:
         text = re.sub(r'^\S[^\n]+([^=-_|])\n([^\s`*0-9#=->-_|])', r'\1 \2', text)
 
-    text = re.sub(r'(?m)^======\s+(.*?)\s+======$', r'###### \1', text)
-    text = re.sub(r'(?m)^=====\s+(.*?)\s+=====$', r'##### \1', text)
-    text = re.sub(r'(?m)^====\s+(.*?)\s+====$', r'#### \1', text)
-    text = re.sub(r'(?m)^===\s+(.*?)\s+===$', r'### \1', text)
-    text = re.sub(r'(?m)^==\s+(.*?)\s+==$', r'## \1', text)
-    text = re.sub(r'(?m)^=\s+(.*?)\s+=$', r'# \1', text)
+    text = re.sub(r'(?m)^======\s+(.*?)\s+======$', r'\n###### \1', text)
+    text = re.sub(r'(?m)^=====\s+(.*?)\s+=====$', r'\n##### \1', text)
+    text = re.sub(r'(?m)^====\s+(.*?)\s+====$', r'\n#### \1', text)
+    text = re.sub(r'(?m)^===\s+(.*?)\s+===$', r'\n### \1', text)
+    text = re.sub(r'(?m)^==\s+(.*?)\s+==$', r'\n## \1', text)
+    text = re.sub(r'(?m)^=\s+(.*?)\s+=$', r'\n# \1', text)
     text = re.sub(r'^             * ', r'****', text)
     text = re.sub(r'^         * ', r'***', text)
     text = re.sub(r'^     * ', r'**', text)
