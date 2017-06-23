@@ -156,7 +156,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         if 'priority' in src_ticket_data:
             src_ticket_priority = src_ticket_data['priority']
         src_ticket_resolution = src_ticket_data['resolution']
-        # src_ticket_severity = src_ticket_data['severity']
+        src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
         src_ticket_component = src_ticket_data.get('component', '')
         src_ticket_keywords = src_ticket_data['keywords']
@@ -183,12 +183,12 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         elif src_ticket_resolution == 'worksforme':
             new_labels.append('works for me')
 
-        # if src_ticket_severity == 'high':
-        #     new_labels.append('critical')
-        # elif src_ticket_severity == 'medium':
-        #     pass
-        # elif src_ticket_severity == 'low':
-        #     new_labels.append("minor")
+        if src_ticket_severity == 'high':
+            new_labels.append('critical')
+        elif src_ticket_severity == 'medium':
+            pass
+        elif src_ticket_severity == 'low':
+            new_labels.append("minor")
 
         # Current ticket types are: enhancement, defect, compilation, performance, style, scientific, task, requirement
         # new_labels.append(src_ticket_type)
