@@ -268,9 +268,14 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
                 # The attachment will be described in the next change!
                 is_attachment = True
                 attachment = change
-            if (change_type == "comment") and change[4] != '':
+            if (change_type == "comment"):
+                desc = change[4]
+                if (desc == '' and is_attachment == False):
+                    continue
+                if (desc != ''):
+                    desc = fix_wiki_syntax(change[4])
                 note = Notes(
-                    note=trac2down.convert(fix_wiki_syntax(change[4]), '/issues/', False)
+                    note=trac2down.convert(desc, '/issues/', False)
                 )
                 binary_attachment = None
                 if (method == 'direct'):
