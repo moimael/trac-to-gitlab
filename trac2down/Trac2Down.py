@@ -68,7 +68,7 @@ def convert(text, base_path, multilines=True):
 
 def save_file(text, name, version, date, author, directory):
     folders = name.rsplit("/", 1)
-    if not os.path.exists("%s%s" % (directory, folders[0])):
+    if len(folders) > 1 and not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
     fp = open('%s%s.markdown' % (directory, name), 'w')
     # print >>fp, '<!-- Name: %s -->' % name
