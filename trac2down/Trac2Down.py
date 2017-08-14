@@ -13,6 +13,8 @@ import re
 import os
 from io import open
 
+meta_header = True
+
 
 def convert(text, base_path, multilines=True):
     text = re.sub('\r\n', '\n', text)
@@ -71,10 +73,14 @@ def save_file(text, name, version, date, author, directory):
     if len(folders) > 1 and not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
     fp = open('%s%s.markdown' % (directory, name), 'w')
-    # print >>fp, '<!-- Name: %s -->' % name
-    # print >>fp, '<!-- Version: %d -->' % version
-    # print >>fp, '<!-- Last-Modified: %s -->' % date
-    # print >>fp, '<!-- Author: %s -->' % author
+
+    if meta_header:
+        fp.write( unicode('<!-- Name: %s -->\n' % name) )
+        fp.write( unicode('<!-- Version: %d -->\n' % version) )
+        fp.write( unicode('<!-- Last-Modified: %s -->\n' % date) )
+        fp.write( unicode('<!-- Author: %s -->\n' % author) )
+        fp.write( unicode('\n') )
+
     fp.write(unicode(text))
     fp.close()
 
