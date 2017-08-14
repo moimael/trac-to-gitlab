@@ -98,7 +98,6 @@ if __name__ == "__main__":
         author = row[3]
         text = row[4]
         text = convert(text, '/wikis/')
-        time = ''
         try:
             time = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
