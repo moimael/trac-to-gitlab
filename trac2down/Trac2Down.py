@@ -14,7 +14,10 @@ import re
 import os
 from io import open
 
-meta_header = True
+# Config Start
+meta_header = True              # whether to include the wiki pages' meta data at the top of the markdown
+markdown_extension = 'markdown' # file extension to use for the generated markdown files
+# Config End
 
 
 def convert(text, base_path, multilines=True):
@@ -73,7 +76,7 @@ def save_file(text, name, version, date, author, directory):
     folders = name.rsplit("/", 1)
     if len(folders) > 1 and not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
-    fp = open('%s%s.markdown' % (directory, name), 'w')
+    fp = open('%s%s.%s' % (directory, name, markdown_extension), 'w')
 
     if meta_header:
         fp.write( unicode('<!-- Name: %s -->\n' % name) )
