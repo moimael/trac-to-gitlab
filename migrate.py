@@ -166,7 +166,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         if 'priority' in src_ticket_data:
             src_ticket_priority = src_ticket_data['priority']
         src_ticket_resolution = src_ticket_data['resolution']
-        src_ticket_severity = src_ticket_data['severity']
+        src_ticket_severity = src_ticket_data.get('severity')
         src_ticket_status = src_ticket_data['status']
         src_ticket_component = src_ticket_data.get('component', '')
         src_ticket_keywords = src_ticket_data['keywords']
