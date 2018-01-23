@@ -110,6 +110,8 @@ class Connection(object):
         )
         event.save()
         for title in set(new_issue.labels.split(',')):
+            if (title == ''):
+                continue
             try:
                 label = Labels.get((Labels.title == title) & (Labels.project == dest_project_id))
             except:
@@ -143,7 +145,7 @@ class Connection(object):
             if not os.path.exists(directory):
                 os.makedirs(directory)
             path = os.path.join(directory, note.attachment)
-            file = open(path,"wb")
+            file = open(path.encode('utf-8'),"wb")
             file.write(binary_attachment)
             file.close()
 

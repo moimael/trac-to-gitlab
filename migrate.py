@@ -79,7 +79,19 @@ must_convert_issues = config.getboolean('issues', 'migrate')
 only_issues = None
 if config.has_option('issues', 'only_issues'):
     only_issues = ast.literal_eval(config.get('issues', 'only_issues'))
+blacklist_issues = None
+if config.has_option('issues', 'blacklist_issues'):
+    blacklist_issues = ast.literal_eval(config.get('issues', 'blacklist_issues'))
 must_convert_wiki = config.getboolean('wiki', 'migrate')
+migrate_keywords = config.getboolean('issues', 'migrate_keywords')
+migrate_milestones = config.getboolean('issues', 'migrate_milestones')
+add_component_as_label = config.getboolean('issues', 'add_component_as_label')
+component_filter = None
+if config.has_option('issues', 'component_filter'):
+    component_filter = ast.literal_eval(config.get('issues', 'component_filter'))
+add_label = None
+if config.has_option('issues', 'add_label'):
+            add_label = config.get('issues', 'add_label')
 
 pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
 matcher_changeset = re.compile(pattern_changeset)
@@ -113,25 +125,27 @@ def get_dest_milestone_id(dest, dest_project_id,milestone_name):
         raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name, dest_project_name))
     return dest_milestone_id["id"]
 
-def convert_issues(source, dest, dest_project_id, only_issues=None):
+def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_issues=None):
     if overwrite and (method == 'direct'):
         dest.clear_issues(dest_project_id)
 
     milestone_map_id={}
-    for milestone_name in source.ticket.milestone.getAll():
-        milestone = source.ticket.milestone.get(milestone_name)
-        print(milestone)
-        new_milestone = Milestones(
-            description = trac2down.convert(fix_wiki_syntax(milestone['description']), '/milestones/', False),
-            title = milestone['name'],
-            state = 'active' if str(milestone['completed']) == '0'  else 'closed'
-        )
-        if method == 'direct':
-            new_milestone.project = dest_project_id
-        if milestone['due']:
-            new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
-        new_milestone = dest.create_milestone(dest_project_id, new_milestone)
-        milestone_map_id[milestone_name] = new_milestone.id
+
+    if migrate_milestones:
+        for milestone_name in source.ticket.milestone.getAll():
+            milestone = source.ticket.milestone.get(milestone_name)
+            print(milestone)
+            new_milestone = Milestones(
+                description = trac2down.convert(fix_wiki_syntax(milestone['description']), '/milestones/', False),
+                title = milestone['name'],
+                state = 'active' if str(milestone['completed']) == '0'  else 'closed'
+            )
+            if method == 'direct':
+                new_milestone.project = dest_project_id
+            if milestone['due']:
+                new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
+            new_milestone = dest.create_milestone(dest_project_id, new_milestone)
+            milestone_map_id[milestone_name] = new_milestone.id
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
@@ -143,14 +157,21 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         if only_issues and src_ticket_id not in only_issues:
             print("SKIP unwanted ticket #%s" % src_ticket_id)
             continue
+        if blacklist_issues and src_ticket_id in blacklist_issues:
+            print("SKIP blacklisted ticket #%s" % src_ticket_id)
+            continue
 
         src_ticket_data = src_ticket[3]
-
-        src_ticket_priority = src_ticket_data['priority']
+        src_ticket_priority = 'normal'
+        if 'priority' in src_ticket_data:
+            src_ticket_priority = src_ticket_data['priority']
         src_ticket_resolution = src_ticket_data['resolution']
-        # src_ticket_severity = src_ticket_data['severity']
+        src_ticket_severity = src_ticket_data['severity']
         src_ticket_status = src_ticket_data['status']
         src_ticket_component = src_ticket_data.get('component', '')
+        src_ticket_keywords = src_ticket_data['keywords']
+        if (component_filter and src_ticket_component not in component_filter):
+            continue
 
         new_labels = []
         if src_ticket_priority == 'high':
@@ -174,19 +195,26 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
         elif src_ticket_resolution == 'worksforme':
             new_labels.append('works for me')
 
-        # if src_ticket_severity == 'high':
-        #     new_labels.append('critical')
-        # elif src_ticket_severity == 'medium':
-        #     pass
-        # elif src_ticket_severity == 'low':
-        #     new_labels.append("minor")
+        if src_ticket_severity == 'high':
+            new_labels.append('critical')
+        elif src_ticket_severity == 'medium':
+            pass
+        elif src_ticket_severity == 'low':
+            new_labels.append("minor")
 
         # Current ticket types are: enhancement, defect, compilation, performance, style, scientific, task, requirement
         # new_labels.append(src_ticket_type)
 
-        if src_ticket_component != '':
+        if add_component_as_label and src_ticket_component != '':
             for component in src_ticket_component.split(','):
                 new_labels.append(component.strip())
+
+        if add_label:
+            new_labels.append(add_label)
+
+        if src_ticket_keywords != '' and migrate_keywords:
+            for keyword in src_ticket_keywords.split(','):
+                new_labels.append(keyword.strip())
 
         print("new labels: %s" % new_labels)
 
@@ -232,7 +260,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
 
         if 'milestone' in src_ticket_data:
             milestone = src_ticket_data['milestone']
-            if milestone and milestone_map_id[milestone]:
+            if milestone and milestone in milestone_map_id:
                 new_issue.milestone = milestone_map_id[milestone]
         new_ticket = dest.create_issue(dest_project_id, new_issue)
         # new_ticket_id  = new_ticket.id
@@ -245,9 +273,14 @@ def convert_issues(source, dest, dest_project_id, only_issues=None):
                 # The attachment will be described in the next change!
                 is_attachment = True
                 attachment = change
-            if (change_type == "comment") and change[4] != '':
+            if (change_type == "comment"):
+                desc = change[4]
+                if (desc == '' and is_attachment == False):
+                    continue
+                if (desc != ''):
+                    desc = fix_wiki_syntax(change[4])
                 note = Notes(
-                    note=trac2down.convert(fix_wiki_syntax(change[4]), '/issues/', False)
+                    note=trac2down.convert(desc, '/issues/', False)
                 )
                 binary_attachment = None
                 if (method == 'direct'):
@@ -301,7 +334,7 @@ if __name__ == "__main__":
     dest_project_id = get_dest_project_id(dest, dest_project_name)
 
     if must_convert_issues:
-        convert_issues(source, dest, dest_project_id, only_issues=only_issues)
+        convert_issues(source, dest, dest_project_id, only_issues=only_issues, blacklist_issues=blacklist_issues)
 
     if must_convert_wiki:
         convert_wiki(source, dest, dest_project_id)
