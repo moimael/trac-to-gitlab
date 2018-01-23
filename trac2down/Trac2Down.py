@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # vim: autoindent tabstop=4 shiftwidth=4 expandtab softtabstop=4 filetype=python fileencoding=utf-8
 '''
 Copyright © 2013
@@ -12,6 +13,11 @@ import datetime
 import re
 import os
 from io import open
+
+# Config Start
+meta_header = True              # whether to include the wiki pages' meta data at the top of the markdown
+markdown_extension = 'markdown' # file extension to use for the generated markdown files
+# Config End
 
 
 def convert(text, base_path, multilines=True):
@@ -68,13 +74,17 @@ def convert(text, base_path, multilines=True):
 
 def save_file(text, name, version, date, author, directory):
     folders = name.rsplit("/", 1)
-    if not os.path.exists("%s%s" % (directory, folders[0])):
+    if len(folders) > 1 and not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
-    fp = open('%s%s.markdown' % (directory, name), 'w')
-    # print >>fp, '<!-- Name: %s -->' % name
-    # print >>fp, '<!-- Version: %d -->' % version
-    # print >>fp, '<!-- Last-Modified: %s -->' % date
-    # print >>fp, '<!-- Author: %s -->' % author
+    fp = open('%s%s.%s' % (directory, name, markdown_extension), 'w')
+
+    if meta_header:
+        fp.write( unicode('<!-- Name: %s -->\n' % name) )
+        fp.write( unicode('<!-- Version: %d -->\n' % version) )
+        fp.write( unicode('<!-- Last-Modified: %s -->\n' % date) )
+        fp.write( unicode('<!-- Author: %s -->\n' % author) )
+        fp.write( unicode('\n') )
+
     fp.write(unicode(text))
     fp.close()
 
@@ -98,7 +108,6 @@ if __name__ == "__main__":
         author = row[3]
         text = row[4]
         text = convert(text, '/wikis/')
-        time = ''
         try:
             time = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %H:%M:%S')
         except ValueError:
