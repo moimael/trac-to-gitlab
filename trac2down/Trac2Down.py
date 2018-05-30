@@ -48,6 +48,7 @@ def convert(text, base_path, multilines=True):
     is_table = False
     for line in text.split('\n'):
         if not line.startswith('    '):
+            line = re.sub(r'\[\[(https?://[^\[\]\|]+)\|([^\[\]]+)\]\]', r'[\2](\1)', line)
             line = re.sub(r'\[(https?://[^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](\1)', line)
             line = re.sub(r'\[wiki:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/wikis/', base_path), line)
             line = re.sub(r'\[source:([^\s\[\]]+)\s([^\[\]]+)\]', r'[\2](%s/\1)' % os.path.relpath('/tree/master/', base_path), line)
