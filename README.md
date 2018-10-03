@@ -2,7 +2,9 @@ What
 =====
 
  This script migrates milestones, issues and wiki pages from trac to GitLab.
-
+ 
+NOTE: This project is in [deprecated](https://github.com/moimael/trac-to-gitlab/issues/23#issuecomment-299425062), in favor of [tracboat/tracboat](https://github.com/tracboat/tracboat).
+ 
 Features
 --------
  * Component & Issue-Type are converted to labels
