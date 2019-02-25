@@ -92,6 +92,7 @@ if config.has_option('issues', 'component_filter'):
 add_label = None
 if config.has_option('issues', 'add_label'):
             add_label = config.get('issues', 'add_label')
+add_issue_header = config.getboolean('issues', 'add_header', fallback=False)
 
 pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
 matcher_changeset = re.compile(pattern_changeset)
@@ -124,6 +125,19 @@ def get_dest_milestone_id(dest, dest_project_id,milestone_name):
     if not dest_milestone_id:
         raise ValueError("Milestone '%s' of project '%s' not found" % (milestone_name, dest_project_name))
     return dest_milestone_id["id"]
+
+def create_issue_header(author, created, updated=None, is_comment=False):
+    if not add_issue_header:
+        return ''
+
+    intro = 'Original comment posted' if is_comment else 'Original issue created'
+    modified = ', last modified on {}'.format(convert_xmlrpc_datetime(updated).strftime('%Y-%m-%d at %X')) if updated else ''
+
+    return '> {} by {} on {}{}\n\n---\n'.format(
+        intro,
+        '@' + users_map[author] if author in users_map else '**' + author + '**',
+        convert_xmlrpc_datetime(created).strftime('%Y-%m-%d at %X'),
+        modified)
 
 def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_issues=None):
     if overwrite and (method == 'direct'):
@@ -162,11 +176,12 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
             continue
 
         src_ticket_data = src_ticket[3]
+        src_ticket_reporter = src_ticket_data['reporter']
         src_ticket_priority = 'normal'
         if 'priority' in src_ticket_data:
             src_ticket_priority = src_ticket_data['priority']
         src_ticket_resolution = src_ticket_data['resolution']
-        src_ticket_severity = src_ticket_data['severity']
+        src_ticket_severity = src_ticket_data.get('severity')
         src_ticket_status = src_ticket_data['status']
         src_ticket_component = src_ticket_data.get('component', '')
         src_ticket_keywords = src_ticket_data['keywords']
@@ -230,10 +245,13 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
         else:
             print("!!! unknown ticket status: %s" % src_ticket_status)
 
+        new_description = (create_issue_header(author=src_ticket_reporter, created=src_ticket[1], updated=src_ticket[2])
+                           + trac2down.convert(fix_wiki_syntax(src_ticket_data['description']), '/issues/', False))
+
         # Minimal parameters
         new_issue = Issues(
             title=src_ticket_data['summary'],
-            description=trac2down.convert(fix_wiki_syntax(src_ticket_data['description']), '/issues/', False),
+            description=new_description,
             state=new_state,
             labels=",".join(new_labels)
         )
@@ -249,10 +267,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
             new_issue.updated_at = convert_xmlrpc_datetime(src_ticket[2])
             new_issue.project = dest_project_id
             new_issue.state = new_state
-            try:
-                new_issue.author = dest.get_user_id(users_map[src_ticket_data['reporter']])
-            except KeyError:
-                new_issue.author = dest.get_user_id(default_user)
+            new_issue.author = dest.get_user_id(users_map.get(src_ticket_reporter, default_user))
             if overwrite:
                 new_issue.iid = src_ticket_id
             else:
@@ -280,7 +295,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
                 if (desc != ''):
                     desc = fix_wiki_syntax(change[4])
                 note = Notes(
-                    note=trac2down.convert(desc, '/issues/', False)
+                    note=create_issue_header(author=change[1], created=change[0], is_comment=True) + trac2down.convert(desc, '/issues/', False)
                 )
                 binary_attachment = None
                 if (method == 'direct'):

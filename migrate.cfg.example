@@ -97,3 +97,7 @@ migrate_milestones: no
 
 # Add the trac component as label to the Gitlab issue
 add_component_as_label: no
+
+# Add a header with original poster and date to issues and comments
+# (useful for api mode where this information is lost)
+add_header: no
