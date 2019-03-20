@@ -77,7 +77,10 @@ def save_file(text, name, version, date, author, directory):
     folders = name.rsplit("/", 1)
     if len(folders) > 1 and not os.path.exists("%s%s" % (directory, folders[0])):
         os.makedirs("%s%s" % (directory, folders[0]))
-    fp = open('%s%s.%s' % (directory, name, markdown_extension), 'w')
+    else:
+        if not os.path.exists('%s' % (directory)):
+            os.makedirs('%s' % (directory))
+    fp = open('%s%s.%s' % (directory, name, markdown_extension), "w+")
 
     if meta_header:
         fp.write( unicode('<!-- Name: %s -->\n' % name) )
