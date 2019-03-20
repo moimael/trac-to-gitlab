@@ -250,7 +250,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
 
         # Minimal parameters
         new_issue = Issues(
-            title=src_ticket_data['summary'],
+            title=(src_ticket_data['summary'][:245] + '...') if len(src_ticket_data['summary']) > 245 else src_ticket_data['summary'],
             description=new_description,
             state=new_state,
             labels=",".join(new_labels)
