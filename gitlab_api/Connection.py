@@ -130,7 +130,7 @@ class Connection(object):
         if hasattr(new_issue, 'assignee'):
             new_issue.assignee_id = new_issue.assignee
         new_ticket = self.post_json("/projects/:id/issues", new_issue.__dict__, id=dest_project_id)
-        new_ticket_id  = new_ticket["id"]
+        new_ticket_id  = new_issue.iid
         # setting closed in create does not work -- limitation in gitlab
         if new_issue.state == 'closed': self.close_issue(dest_project_id,new_ticket_id)
         return Issues.create(new_ticket)

@@ -272,7 +272,8 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
                 new_issue.iid = src_ticket_id
             else:
                 new_issue.iid = dest.get_issues_iid(dest_project_id)
-
+        # Set correct issue id
+        new_issue.iid = src_ticket_id
         if 'milestone' in src_ticket_data:
             milestone = src_ticket_data['milestone']
             if milestone and milestone in milestone_map_id:
