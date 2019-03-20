@@ -146,6 +146,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
     milestone_map_id={}
 
     if migrate_milestones:
+        milestone_id=0;
         for milestone_name in source.ticket.milestone.getAll():
             milestone = source.ticket.milestone.get(milestone_name)
             print(milestone)
@@ -159,7 +160,12 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
             if milestone['due']:
                 new_milestone.due_date = convert_xmlrpc_datetime(milestone['due'])
             new_milestone = dest.create_milestone(dest_project_id, new_milestone)
-            milestone_map_id[milestone_name] = new_milestone.id
+            if new_milestone.id:
+                milestone_map_id[milestone_name] = new_milestone.id
+                milestone_id = new_milestone.id + 1;
+            else:
+                milestone_map_id[milestone_name] = milestone_id;
+                milestone_id = milestone_id + 1;
 
     get_all_tickets = xmlrpclib.MultiCall(source)
 
