@@ -374,6 +374,13 @@ def convert_wiki(source, dest, dest_project_id):
             if (name == 'WikiStart'):
                 name = 'home'
             converted = trac2down.convert(page, os.path.dirname('/wikis/%s' % name))
+            try:
+                wikiauthor = dest.get_user_id(users_map[info['author']])
+                if wikiauthor == None:
+                       wikiauthor = dest.get_user_id(default_user)
+            except KeyError:
+                wikiauthor = dest.get_user_id(default_user)
+            dest.create_wiki(dest_project_id, converted, name, wikiauthor)
             if method == 'direct':
                 for attachment in source.wiki.listAttachments(name):
                     print(attachment)
