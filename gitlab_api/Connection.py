@@ -8,6 +8,8 @@ See license information at the bottom of this file
 
 import json
 import requests
+import datetime
+import hashlib
 
 # See http://code.activestate.com/recipes/52308-the-simple-but-handy-collector-of-a-bunch-of-named/?in=user-97991
 class Bunch(object):
@@ -45,6 +47,9 @@ class Connection(object):
         self.url = url
         self.access_token = access_token
         self.verify = ssl_verify
+        self.impers_tokens = dict()  #TODO would be nice to delete these tokens when finished
+        self.user_ids = dict()  # username to user_id mapping
+        self.uploaded_files = dict() # md5-hash to upload-file response (dict)
 
     def milestone_by_name(self, project_id, milestone_name):
         milestones = self.get("/projects/:project_id/milestones",project_id=project_id)
@@ -67,6 +72,14 @@ class Connection(object):
     def get(self, url_postfix, **keywords):
         return self._get(url_postfix, keywords)
 
+    def _request_headers(self, keywords) :
+        headers = dict()
+        if 'token' in keywords :
+            headers['PRIVATE-TOKEN'] = keywords['token']
+        else :
+            headers['PRIVATE-TOKEN'] = self.access_token
+        return headers
+
     def _get(self, url_postfix, keywords):
         """
         :param url_postfix: e.g. "/projects/:id/issues"
@@ -82,6 +95,19 @@ class Connection(object):
         completed_url = self._complete_url(url_postfix, keywords)
         r = requests.put(completed_url,data= data, verify=self.verify)
         j = r.json()
+        return j
+
+    def post(self, url_postfix, data, **keywords):
+        completed_url = self._complete_url(url_postfix, keywords)
+        files = keywords['files'] if 'files' in keywords else None
+        while True :
+            r = requests.post(completed_url, data = data, verify = self.verify, headers = self._request_headers(keywords), files = files)
+            if r.status_code < 500 :
+                break
+            time.sleep(2)
+        if r.status_code >= 400 : print(r.text)
+        r.raise_for_status()
+        j = r.json() if r.status_code >= 200 and r.status_code < 300 else None
         return j
 
     def put_json(self, url_postfix, data, **keywords):
@@ -119,14 +145,60 @@ class Connection(object):
         else:
             return Milestones.create(self.post_json("/projects/:id/milestones", new_milestone.__dict__, id=dest_project_id))
 
+    def create_wiki(self, dest_project_id, content, title, author):
+        token = self.get_user_imperstoken(author)
+        new_wiki_data = {
+            "id" : dest_project_id,
+            "content" : content,
+            "title" : title
+        }
+        self.post("/projects/:project_id/wikis", new_wiki_data, project_id = dest_project_id, token = token)
+
     def comment_issue(self ,project_id, ticket, note, binary_attachment):
+        if hasattr(note, 'attachment_name') :
+           # ensure file name will be in ascii (otherwise gitlab complain)
+           origname = note.attachment_name
+           note.attachment_name = note.attachment_name.encode("ascii", "replace")
+           r = self.upload_file(project_id, note.author, note.attachment_name, binary_attachment)
+           relative_path_start_index = r['markdown'].index('/')
+           relative_path = r['markdown'][:relative_path_start_index] + '..' + r['markdown'][relative_path_start_index:]
+           #note.note = "Attachment added: " + r['markdown'] + '\n\n' + note.note
+           note.note = "Attachment added: " + relative_path + '\n\n' + note.note
+           if origname != note.attachment_name :
+               note.note += '\nFilename changed during trac to gitlab conversion. Original filename: ' + origname
+
         new_note_data = {
             "id" : project_id,
-            "issue_id" :ticket.id,
+            "issue_id" :ticket.iid,
             "body" : note.note
         }
-        self.post_json( "/projects/:project_id/issues/:issue_id/notes", new_note_data, project_id=project_id, issue_id=ticket.id)
+        self.post_json( "/projects/:project_id/issues/:issue_id/notes", new_note_data, project_id=project_id, issue_id=ticket.iid)
 
+    def get_user_imperstoken(self, userid) :
+        if userid in self.impers_tokens :
+            return self.impers_tokens[userid];
+        data = {
+            'user_id' : userid,
+            'name' : 'trac2gitlab',
+            'expires_at' : (datetime.date.today() + datetime.timedelta(days = 1)).strftime('%Y-%m-%dT%H:%M:%S.%f'),
+            'scopes[]' : 'api'
+            }
+        r = self.post_json('/users/:user_id/impersonation_tokens', data, user_id = userid)
+        self.impers_tokens[userid] = r['token'];
+        return r['token']
+
+    def upload_file(self, project_id, author, filename, filedata) :
+        token = self.get_user_imperstoken(author)
+
+        h = hashlib.md5(filename + filedata).hexdigest()
+        if h in self.uploaded_files :
+            print '  use previous upload of file', filename
+            return self.uploaded_files[h]
+
+        print '  upload file', filename
+        r = self.post("/projects/:project_id/uploads", None, files = {'file' : (filename, filedata)}, project_id = project_id, token = token)
+        self.uploaded_files[h] = r;
+        return r
 
     def close_issue(self,project_id,ticket_id):
         new_note_data = {"state_event": "close"}
