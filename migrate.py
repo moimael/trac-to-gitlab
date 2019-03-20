@@ -285,12 +285,19 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
             if milestone and milestone in milestone_map_id:
                 new_issue.milestone = milestone_map_id[milestone]
         new_ticket = dest.create_issue(dest_project_id, new_issue)
-        # new_ticket_id  = new_ticket.id
 
         changelog = source.ticket.changeLog(src_ticket_id)
         is_attachment = False
+        attachment = None
+        binary_attachment = None
+        newowner = None
         for change in changelog:
+            # New line
+            change_time = str(convert_xmlrpc_datetime(change[0]))
             change_type = change[2]
+            print(("  %s by %s (%s -> %s)" % (change_type, change[1], change[3][:40].replace("\n", " "), change[4][:40].replace("\n", " "))).encode("ascii", "replace"))
+            #assert attachment is None or change_type == "comment", "an attachment must be followed by a comment"
+            author = dest.get_user_id(users_map[change[1]])
             if change_type == "attachment":
                 # The attachment will be described in the next change!
                 is_attachment = True
@@ -304,7 +311,15 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
                 note = Notes(
                     note=create_issue_header(author=change[1], created=change[0], is_comment=True) + trac2down.convert(desc, '/issues/', False)
                 )
-                binary_attachment = None
+                if attachment is not None :
+                    note.attachment_name = attachment[4]  # name of attachment
+                    binary_attachment = source.ticket.getAttachment(src_ticket_id, attachment[4].encode('utf8')).data
+                try:
+                    note.author = dest.get_user_id(users_map[change[1]])
+                    if note.author == None:
+                       note.author = dest.get_user_id(default_user)
+                except KeyError:
+                    note.author = dest.get_user_id(default_user)
                 if (method == 'direct'):
                     note.created_at = convert_xmlrpc_datetime(change[0])
                     note.updated_at = convert_xmlrpc_datetime(change[0])
@@ -317,6 +332,32 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
                         binary_attachment = source.ticket.getAttachment(src_ticket_id, attachment[4].encode('utf8')).data
                 dest.comment_issue(dest_project_id, new_ticket, note, binary_attachment)
                 is_attachment = False
+            if change_type == "status" :
+                if change[3] == 'vendor' :
+                    # remove label 'vendor'
+                    new_ticket.labels.remove('vendor')
+                    # workaround #3 dest.update_issue_property(dest_project_id, issue, author, change_time, 'labels')
+
+                # we map here the various statii we have in trac to just 2 statii in gitlab (open or close), so loose some information
+                if change[4] in ['new', 'assigned', 'analyzed', 'vendor', 'reopened'] :
+                    newstate = 'open'
+                elif change[4] in ['closed'] :
+                    newstate = 'closed'
+                else :
+                    raise("  unknown ticket status: " + change[4])
+
+                if new_ticket.state != newstate :
+                    new_ticket.state = newstate
+
+                if change[4] == 'vendor' :
+                    # add label 'vendor'
+                    new_ticket.labels.append('vendor')
+                    dest.ensure_label(dest_project_id, 'vendor', labelcolor['vendor'])
+
+                if newstate == 'closed' :
+                    dest.close_issue(dest_project_id,new_ticket.id);
+
+                dest.comment_issue(dest_project_id, new_ticket, Notes(note = 'Changing status from ' + change[3] + ' to ' + change[4] + '.', created_at = change_time, author = author), binary_attachment)
 
 def convert_wiki(source, dest, dest_project_id):
     if overwrite and (method == 'direct'):
