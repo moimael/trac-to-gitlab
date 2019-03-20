@@ -162,7 +162,6 @@ class Connection(object):
            r = self.upload_file(project_id, note.author, note.attachment_name, binary_attachment)
            relative_path_start_index = r['markdown'].index('/')
            relative_path = r['markdown'][:relative_path_start_index] + '..' + r['markdown'][relative_path_start_index:]
-           #note.note = "Attachment added: " + r['markdown'] + '\n\n' + note.note
            note.note = "Attachment added: " + relative_path + '\n\n' + note.note
            if origname != note.attachment_name :
                note.note += '\nFilename changed during trac to gitlab conversion. Original filename: ' + origname

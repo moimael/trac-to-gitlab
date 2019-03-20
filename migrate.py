@@ -92,7 +92,7 @@ if config.has_option('issues', 'component_filter'):
 add_label = None
 if config.has_option('issues', 'add_label'):
             add_label = config.get('issues', 'add_label')
-add_issue_header = config.getboolean('issues', 'add_header', fallback=False)
+add_issue_header = config.getboolean('issues', 'add_header')
 
 pattern_changeset = r'(?sm)In \[changeset:"([^"/]+?)(?:/[^"]+)?"\]:\n\{\{\{(\n#![^\n]+)?\n(.*?)\n\}\}\}'
 matcher_changeset = re.compile(pattern_changeset)
