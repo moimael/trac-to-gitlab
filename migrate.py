@@ -355,7 +355,7 @@ def convert_issues(source, dest, dest_project_id, only_issues=None, blacklist_is
                     dest.ensure_label(dest_project_id, 'vendor', labelcolor['vendor'])
 
                 if newstate == 'closed' :
-                    dest.close_issue(dest_project_id,new_ticket.id);
+                    dest.close_issue(dest_project_id,new_ticket.iid);
 
                 dest.comment_issue(dest_project_id, new_ticket, Notes(note = 'Changing status from ' + change[3] + ' to ' + change[4] + '.', created_at = change_time, author = author), binary_attachment)
 
