@@ -101,7 +101,7 @@ class Connection(object):
         completed_url = self._complete_url(url_postfix, keywords)
         files = keywords['files'] if 'files' in keywords else None
         while True :
-            r = requests.post(completed_url, data = data, verify = self.verify, headers = self._request_headers(keywords), files = files)
+            r = requests.post(completed_url, data = data, verify = self.verify, files = files)
             if r.status_code < 500 :
                 break
             time.sleep(2)
