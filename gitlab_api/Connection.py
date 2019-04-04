@@ -86,7 +86,7 @@ class Connection(object):
         :param keywords:  map, e.g. { "id" : 5 }
         :return: json of GET
         """
-        completed_url = self._complete_url(url_postfix, keywords)
+        completed_url = self._complete_url(url_postfix, keywords)+"&per_page=50"
         r = requests.get(completed_url, verify=self.verify)
         json = r.json()
         return json
